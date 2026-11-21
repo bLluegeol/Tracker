@@ -169,6 +169,7 @@ img.badge{background:#fff}
 .prevrow{display:flex;gap:var(--sp-2);align-items:center}
 .daterow{display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2)}
 input[type=color]{width:44px;height:44px;padding:2px;border:1px solid var(--line);border-radius:var(--r-2);background:var(--bg);flex:none}
+.lrow{display:grid;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--line)}.lrow:last-child{border-bottom:0}.paidbtn{width:100%;justify-content:center;gap:8px;min-height:44px}.paidbtn .ic{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2}
 .colrow{display:flex;align-items:center;gap:var(--sp-2)}
 .cw{display:grid;gap:12px;justify-items:center;margin-top:6px;padding:12px;border:1px solid var(--line);border-radius:var(--r-3);background:var(--card)}
 .cw canvas{width:min(100%,240px);aspect-ratio:1;border-radius:50%;touch-action:none;cursor:crosshair;box-shadow:0 0 0 1px var(--line)}
@@ -613,7 +614,7 @@ html[data-look=glass][data-tone=light] .kp button{background:rgba(255,255,255,.7
   <symbol id="i-right" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></symbol>
   <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 16V5M7 9l5-5 5 5M5 20h14"/></symbol>
-  <symbol id="i-x" viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol><symbol id="i-x" viewBox="0 0 24 24"><path d="M5 7h14M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
   <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
   <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
   <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></symbol>
@@ -2041,7 +2042,7 @@ function exportXlsx(){
   ['Budgets',[['Category','Monthly limit']].concat(Object.keys(S.budgets).map(function(id){return [catName(id),m(S.budgets[id])]}))],
   ['Trips',[['Name','Budget','Spent','Status','Start','End']].concat(S.trips.map(function(t){return [t.name,m(t.budget||0),m(tripSpent(t.id)),t.status,t.start||'',t.end||'']}))],
   ['Goals',[['Name','Target','Saved','Deadline']].concat(S.goals.map(function(g){return [g.name,m(g.target),m(gs(g)),g.deadline||'']}))],
-  ['Loans',[['Person','Direction','Amount','Left','Due']].concat(S.loans.map(function(l){return [l.who,l.dir==='owe'?'I owe':'Owed to me',m(l.amt),m(loanLeft(l)),l.due||'']}))]
+  ['Loans',[['Person','Direction','Amount','Left','Due']].concat(S.loans.map(function(l){return [l.who,l.dir==='owe'?'I owe':'Owed to me',m(loanTot(l)),m(loanLeft(l)),l.due||'']}))]
  ];
  var ct='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map(function(s,i){return '<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'}).join('')+'</Types>';
  var H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
@@ -2067,9 +2068,10 @@ function runRecurring(){
  var n=0,t=today();
  S.recurring.forEach(function(r){var g=0;
   while(r.next<=t&&(!r.end||r.next<=r.end)&&g++<400){
+   if(r.ask&&!r.pause)break;
    var tx={id:uid(),ts:Date.now()+n,type:r.type,amt:r.amt,acc:r.acc,to:r.to||null,cat:r.cat||null,date:r.next,note:r.note||'',trip:null,rec:r.id};
    if(r.tags&&r.tags.length)tx.tags=r.tags.slice();
-   if(accById(r.acc)&&(r.type!=='tr'||accById(r.to))){S.tx.push(tx);n++}
+   if(!r.pause&&accById(r.acc)&&(r.type!=='tr'||accById(r.to))){S.tx.push(tx);n++}
    r.next=advDate(r.next,r.freq,r.day);
   }});
  S.goals.forEach(function(g){var a=g.auto;if(!a||!(a.amt>0))return;var q=0;
@@ -2083,9 +2085,24 @@ function runRecurring(){
  });
  if(n){save();setTimeout(function(){toast(n+' recurring item'+(n===1?'':'s')+' added')},400)}
 }
+function recDue(types){var t=today();return S.recurring.filter(function(r){return r.ask&&!r.pause&&r.next<=t&&(!r.end||r.next<=r.end)&&(!types||types.indexOf(r.type)>-1)}).sort(function(a,b){return a.next<b.next?-1:1})}
+function dueCard(types){
+ var l=recDue(types);if(!l.length)return '';
+ return '<section class="card"><div class="sh">Due now</div>'+l.map(function(r){var nm=r.note||(r.type==='tr'?'Transfer':catName(r.cat));
+  return '<div class="lrow"><div class="row" style="display:flex;align-items:center;gap:10px;min-height:52px">'+(r.type==='tr'?'':cbadge(r.cat,30))+'<span style="flex:1;min-width:0"><b>'+esc(nm)+'</b><div class="hint">Due '+esc(fullDate(r.next))+'</div></span><b class="num">'+esc(money(r.amt))+'</b></div>'
+   +'<div class="actions"><button type="button" class="btn pri grow" data-act="recPaid" data-id="'+r.id+'">'+ic('check')+'<span>'+(r.type==='inc'?'Received':'Mark paid')+'</span></button><button type="button" class="btn" data-act="recSkip" data-id="'+r.id+'">Skip</button></div></div>'}).join('')+'</section>'}
+function recPaid(r){
+ var snap={next:r.next},t=today();
+ var tx={id:uid(),ts:Date.now(),type:r.type,amt:r.amt,acc:r.acc,to:r.to||null,cat:r.cat||null,date:t,note:r.note||'',trip:null,rec:r.id};
+ if(r.tags&&r.tags.length)tx.tags=r.tags.slice();
+ var ok=accById(r.acc)&&(r.type!=='tr'||accById(r.to));if(ok)S.tx.push(tx);
+ r.next=advDate(r.next,r.freq,r.day);save();render(true);
+ toast((r.type==='inc'?'Received ':'Paid ')+money(r.amt)+' today',function(){r.next=snap.next;S.tx=S.tx.filter(function(x){return x.id!==tx.id});save();render(true)});
+}
+function recSkip(r){var old=r.next;r.next=advDate(r.next,r.freq,r.day);save();render(true);toast('Skipped '+dShort(old),function(){r.next=old;save();render(true)})}
 function recurDueSoon(){
  var rd=S.settings.remDays===undefined?7:S.settings.remDays,t=today(),o=[];if(!rd)return o;
- S.recurring.forEach(function(r){var d=daysBetween(t,r.next);if(d>=0&&d<=rd)o.push({p:d+1,t:(r.note||catName(r.cat)||'Repeat'),r:money(r.amt)+' · '+(d===0?'today':'in '+d+'d'),at:'data-act="sub" data-sub="recur"'})});
+ S.recurring.forEach(function(r){if(r.pause)return;var d=daysBetween(t,r.next);if((d>=0&&d<=rd)||(r.ask&&d<0))o.push({p:d+1,t:(r.note||catName(r.cat)||'Repeat'),r:money(r.amt)+' · '+(d<0?'overdue':d===0?'today':'in '+d+'d'),at:'data-act="sub" data-sub="recur"'})});
  return o;
 }
 function monthlyCost(r){return Math.round(r.amt*(r.freq==='weekly'?52/12:r.freq==='biweekly'?26/12:1))}
@@ -2107,12 +2124,13 @@ function subDetect(){
  return out.sort(function(a,b){return monthlyCost({amt:b.amt,freq:b.freq})-monthlyCost({amt:a.amt,freq:a.freq})});
 }
 function pSubs(){
+ var dc=dueCard(['exp']);
  var l=S.recurring.filter(function(r){return r.type==='exp'}).sort(function(a,b){return monthlyCost(b)-monthlyCost(a)}),tot=0,rev=0;
- l.forEach(function(r){tot+=monthlyCost(r);if(r.review)rev+=monthlyCost(r)});
- var h='<section class="card"><div class="sh">Costs every month</div><div class="big num">'+esc(money(tot))+'</div><div class="split"><span>Per year <b class="num">'+esc(money(tot*12))+'</b></span><span>Items <b class="num">'+l.length+'</b></span>'+(rev?'<span>To review <b class="num" style="color:var(--warn-ink)">'+esc(money(rev))+'</b></span>':'')+'</div></section>';
+ l.forEach(function(r){if(r.pause)return;tot+=monthlyCost(r);if(r.review)rev+=monthlyCost(r)});
+ var h=dc+'<section class="card"><div class="sh">Costs every month</div><div class="big num">'+esc(money(tot))+'</div><div class="split"><span>Per year <b class="num">'+esc(money(tot*12))+'</b></span><span>Items <b class="num">'+l.length+'</b></span>'+(rev?'<span>To review <b class="num" style="color:var(--warn-ink)">'+esc(money(rev))+'</b></span>':'')+'</div></section>';
  h+='<section class="card"><div class="sh">Subscriptions and bills</div>';
  if(!l.length)h+='<div class="hint">Nothing repeats yet. Add repeating expenses in Repeats, or accept a suggestion below.</div>';
- l.forEach(function(r){var nm=r.note||catName(r.cat);
+ l.forEach(function(r){var nm=(r.note||catName(r.cat))+(r.pause?' (paused)':'');
   h+='<div class="row" style="display:flex;align-items:center;gap:8px;min-height:56px"><button class="grow" data-act="editRec" data-id="'+r.id+'" style="display:flex;gap:10px;align-items:center;text-align:left;min-width:0;flex:1">'+cbadge(r.cat,30)+'<span style="min-width:0"><b>'+esc(nm)+'</b><div class="hint">'+esc(FREQ[r.freq])+' · next '+esc(dShort(r.next))+(r.review?' · <span style="color:var(--warn-ink)">Review</span>':'')+'</div></span></button>'
    +'<span style="text-align:right"><b class="num">'+esc(money(r.amt))+'</b><div class="hint num">'+esc(money(monthlyCost(r)))+' / mo</div></span>'
    +'<button class="chip" data-act="subFlag" data-id="'+r.id+'" aria-pressed="'+!!r.review+'" aria-label="Flag '+esc(nm)+' to review or cancel">'+(r.review?'Flagged':'Review')+'</button></div>'});
@@ -2124,7 +2142,7 @@ function pSubs(){
  return h;
 }
 function pRecur(){
- var h='<section class="card"><div class="sh">Repeating transactions</div>';
+ var h=dueCard()+'<section class="card"><div class="sh">Repeating transactions</div>';
  if(!S.recurring.length)h+='<div class="hint">Nothing repeats yet. Choose "Repeat" when adding a transaction, or add one here. Items are created when you open the app.</div>';
  S.recurring.slice().sort(function(a,b){return a.next<b.next?-1:1}).forEach(function(r){
   h+='<button class="row" data-act="editRec" data-id="'+r.id+'" style="display:flex;justify-content:space-between;gap:8px;min-height:52px;align-items:center;width:100%;text-align:left"><span style="min-width:0"><b>'+esc(r.note||(r.type==='tr'?'Transfer':catName(r.cat)))+'</b><div class="hint">'+FREQ[r.freq]+' · next '+esc(dShort(r.next))+'</div></span><span class="num">'+esc(money(r.type==='exp'?-r.amt:r.amt))+'</span></button>'});
@@ -2145,18 +2163,22 @@ function recDlg(id){
   +'<label class="field"><span>Repeats</span><select name="freq">'+Object.keys(FREQ).map(function(k){return '<option value="'+k+'"'+(r&&r.freq===k?' selected':'')+'>'+FREQ[k]+'</option>'}).join('')+'</select></label>'
   +'<label class="field"><span>Next date</span><input type="date" name="next" value="'+(r?r.next:today())+'"></label>'
   +'<label class="field"><span>Note</span><input type="text" name="note" maxlength="120" value="'+esc(r?r.note:'')+'"></label>'
+  +'<label class="chk"><input type="checkbox" name="ask"'+(r&&r.ask?' checked':'')+'><span>Ask me first. It waits for you to tap Mark paid when it is due.</span></label>'
+  +'<label class="chk"><input type="checkbox" name="pause"'+(r&&r.pause?' checked':'')+'><span>Paused. Nothing is added while paused.</span></label>'
+  +'<button type="button" class="btn ghost" id="skipnext">Skip the next one</button>'
   +'<div class="err" role="alert" id="derr"></div><div class="actions"><button class="btn pri grow" type="submit">Save</button><button class="btn" type="button" data-close>Cancel</button>'+(r?'<button class="btn danger icon" type="button" data-act="delRec" data-id="'+r.id+'" aria-label="Delete">'+ic('close')+'</button>':'')+'</div></form>',
  function(f){
   var amt=parseAmt(f.amt.value),ty=f.type.value;
   if(!(amt>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
   if(!f.next.value){$('#derr').textContent='Pick the next date.';return}
   if(ty==='tr'&&f.acc.value===f.to.value){$('#derr').textContent='Choose two different accounts.';return}
-  var o={type:ty,amt:amt,acc:f.acc.value,to:ty==='tr'?f.to.value:null,cat:ty==='tr'?null:(f.cat.value||null),freq:f.freq.value,next:f.next.value,day:+f.next.value.slice(8,10),note:f.note.value.trim()};
+  var o={type:ty,amt:amt,acc:f.acc.value,to:ty==='tr'?f.to.value:null,cat:ty==='tr'?null:(f.cat.value||null),freq:f.freq.value,next:f.next.value,day:+f.next.value.slice(8,10),note:f.note.value.trim(),ask:f.ask.checked,pause:f.pause.checked};
   if(r)Object.assign(r,o);else{o.id=uid();S.recurring.push(o)}
   save();dlg.close();runRecurring();render(true);toast('Saved');
  });
  var f=$('form',dlg);function sync(){var t=f.type.value;f.querySelector('[data-f=cat]').hidden=t==='tr';f.querySelector('[data-f=to]').hidden=t!=='tr';f.cat.innerHTML=catOpts(catList(t==='inc'?'inc':'exp'),r&&r.cat,'<option value="">Uncategorized</option>');catLbl(f)}
  f.addEventListener('change',function(e){if(e.target.name==='type')sync()});sync();
+ f.addEventListener('click',function(e){if(e.target.closest('#skipnext')&&f.next.value){f.next.value=advDate(f.next.value,f.freq.value,+f.next.value.slice(8,10));toast('Next date is now '+fullDate(f.next.value)+'. Tap Save.')}});
 }
 /* budget alerts */
 function alertSnap(o){
@@ -2533,7 +2555,26 @@ function goalDlg(id){
 /* ================= credits: cards + loans / utang ================= */
 function loanById(id){return S.loans.filter(function(l){return l.id===id})[0]}
 function loanPaid(l){return l.pay.reduce(function(s,p){return s+p.amt},0)}
-function loanLeft(l){return Math.max(0,l.amt-loanPaid(l))}
+function loanQuick(l){
+ var left=loanLeft(l);if(!(left>0))return;var owe=l.dir==='owe',tot=loanPay(l),ip=0;
+ if(!(tot>0))return;
+ if(l.int>0){var ipaid=l.pay.reduce(function(q,y){return q+(y.ip||0)},0),irem=Math.max(0,l.int-ipaid);ip=tot>=left?irem:Math.min(irem,Math.round(tot*l.int/loanTot(l)))}
+ var acc=accById(l.pacc)?l.pacc:(accById(S.settings.lastAcc)?S.settings.lastAcc:''),dt=today();
+ var snap={pay:l.pay.slice(),due:l.due};
+ var p={id:uid(),date:dt,amt:tot};if(ip>0)p.ip=ip;
+ if(acc){
+  var cid=null;if(owe){var lp=S.cats.filter(function(c){return c.name==='Loan payments'&&c.parent})[0];cid=lp?lp.id:null}
+  var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:tot-ip,acc:acc,to:null,cat:cid,date:dt,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;S.tx.push(x);p.tx=x.id;
+  if(ip>0){var xi={id:uid(),ts:Date.now()+1,type:owe?'exp':'inc',amt:ip,acc:acc,to:null,cat:ensureCat(owe?'Interest and fees':'Interest income',owe?'exp':'inc'),date:dt,note:(owe?'Interest: ':'Interest from ')+l.who,trip:null,int:true};S.tx.push(xi);p.itx=xi.id}
+ }
+ l.pay.push(p);
+ if(l.inst&&l.inst.amt>0&&l.due&&tot>=l.inst.amt*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
+ if(loanLeft(l)===0)l.due='';
+ save();render(true);
+ toast((owe?'Paid ':'Received ')+money(tot)+' today ('+fullDate(dt)+')',function(){l.pay=snap.pay;l.due=snap.due;S.tx=S.tx.filter(function(t){return t.id!==p.tx&&t.id!==p.itx});save();render(true)});
+}
+function loanTot(l){return l.amt+(l.int||0)}
+function loanLeft(l){return Math.max(0,loanTot(l)-loanPaid(l))}
 function dueInfo(a){
  if(!a.due)return null;var t=today(),y=+t.slice(0,4),m=+t.slice(5,7)-1;
  function mk(yy,mm){var last=new Date(yy,mm+1,0).getDate();return isoDate(new Date(yy,mm,Math.min(a.due,last)))}
@@ -2571,13 +2612,13 @@ function loanOcc(l,first,last){var o=[],d=l.due,left=loanLeft(l),n=0;if(!left||!
  if(!(l.inst&&l.inst.amt>0)){if(d>=first&&d<=last)o.push({d:d,amt:left});return o}
  var rem=left;while(d<=last&&rem>0&&n++<60){var a=Math.min(rem,l.inst.amt);if(d>=first)o.push({d:d,amt:a});rem-=a;d=advDate(d,l.inst.freq,l.inst.day)}return o}
 function loanCard(l){
- var left=loanLeft(l),paid=loanPaid(l),p=l.amt>0?Math.min(100,paid/l.amt*100):0,pill='';
+ var left=loanLeft(l),paid=loanPaid(l),p=loanTot(l)>0?Math.min(100,paid/loanTot(l)*100):0,pill='';
  if(left===0)pill='<span class="pill ok">Settled</span>';
  else if(l.due){var d=daysBetween(today(),l.due);pill=duePill(d,l.due,'Due')}
  var lb=lenderBadge(l.who,30);
- return '<button class="row" data-act="openLoan" data-id="'+l.id+'" style="display:grid;gap:6px;padding:12px 0"><span style="display:flex;gap:10px;align-items:center;min-width:0">'+(lb||'<span class="cb" aria-hidden="true" style="width:30px;height:30px;background:color-mix(in srgb,'+(l.dir==='owe'?'var(--warnacc)':'var(--ok)')+' 22%,transparent);color:'+(l.dir==='owe'?'var(--warnacc)':'var(--ok-ink)')+'">'+ic(l.dir==='owe'?'up':'down')+'</span>')+'<span class="grow t">'+esc(l.who)+'</span><b class="num">'+esc(money(left))+'</b></span>'
+ return '<div class="lrow"><button class="row" data-act="openLoan" data-id="'+l.id+'" style="display:grid;gap:6px;padding:12px 0"><span style="display:flex;gap:10px;align-items:center;min-width:0">'+(lb||'<span class="cb" aria-hidden="true" style="width:30px;height:30px;background:color-mix(in srgb,'+(l.dir==='owe'?'var(--warnacc)':'var(--ok)')+' 22%,transparent);color:'+(l.dir==='owe'?'var(--warnacc)':'var(--ok-ink)')+'">'+ic(l.dir==='owe'?'up':'down')+'</span>')+'<span class="grow t">'+esc(l.who)+'</span><b class="num">'+esc(money(left))+'</b></span>'
   +'<span class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+Math.round(p)+'" aria-label="'+esc(l.who)+' repaid"><i style="width:'+p.toFixed(1)+'%"></i></span>'
-  +'<span style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="small muted num">Paid '+esc(money(paid))+' of '+esc(money(l.amt))+(l.inst&&l.inst.amt>0&&left>0?' · '+esc(money(l.inst.amt))+' '+esc(({weekly:'weekly',biweekly:'every 2 wks',monthly:'monthly'})[l.inst.freq]||'')+(loanLeftN(l)?' · '+loanLeftN(l)+' left':''):'')+'</span>'+pill+'</span></button>';
+  +'<span style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="small muted num">Paid '+esc(money(paid))+' of '+esc(money(loanTot(l)))+(l.inst&&l.inst.amt>0&&left>0?' · '+esc(money(l.inst.amt))+' '+esc(({weekly:'weekly',biweekly:'every 2 wks',monthly:'monthly'})[l.inst.freq]||'')+(loanLeftN(l)?' · '+loanLeftN(l)+' left':''):'')+'</span>'+pill+'</span></button>'+(left>0?'<button type="button" class="btn paidbtn" data-act="quickPaid" data-id="'+l.id+'">'+ic('check')+'<span>'+(l.dir==='owe'?'Mark paid':'Mark received')+' · '+esc(money(loanPay(l)))+'</span></button>':'')+'</div>';
 }
 function creditTotals(){
  var cards=S.accounts.filter(function(a){return TYPES[a.type].debt}),oc=0,io=0,om=0;
@@ -2601,37 +2642,46 @@ function pCredits(){
 }
 function loanDlg(id){
  var l=loanById(id);if(!l)return;var left=loanLeft(l),owe=l.dir==='owe';
- var hist=l.pay.slice().sort(function(a,b){return a.date<b.date?1:-1}).map(function(p){return '<div class="row" style="min-height:44px"><span class="grow"><div class="t num">'+esc(money(p.amt))+(p.int?' + '+esc(money(p.int))+' interest':'')+'</div><div class="s">'+esc(dayLabel(p.date))+(p.tx?' · in your accounts':'')+'</div></span><button type="button" class="btn ghost icon" data-act="delPay" data-id="'+l.id+'" data-p="'+p.id+'" aria-label="Delete payment">'+ic('x')+'</button></div>'}).join('');
+ var hist=l.pay.slice().sort(function(a,b){return a.date<b.date?1:-1}).map(function(p){return '<div class="row" style="min-height:44px"><span class="grow"><div class="t num">'+esc(money(p.amt))+(p.int?' + '+esc(money(p.int))+' interest':'')+(p.ip?' (incl. '+esc(money(p.ip))+' interest)':'')+'</div><div class="s">'+esc(dayLabel(p.date))+(p.tx?' · in your accounts':'')+'</div></span><button type="button" class="btn ghost icon" data-act="delPay" data-id="'+l.id+'" data-p="'+p.id+'" aria-label="Delete payment">'+ic('x')+'</button></div>'}).join('');
  openDlg('<form class="dform" novalidate><h2 id="dlg-t">'+esc(l.who)+'</h2>'
-  +'<div class="hint">'+(owe?'You owe':'Owes you')+' · '+esc(money(l.amt))+' total'+(l.due?' · '+(l.inst&&l.inst.amt>0?'next payment ':'due ')+esc(fullDate(l.due)):'')+'</div>'
+  +'<div class="hint">'+(owe?'You owe':'Owes you')+' · '+esc(money(loanTot(l)))+' total'+(l.int>0?' (incl. '+esc(money(l.int))+' interest)':'')+(l.due?' · '+(l.inst&&l.inst.amt>0?'next payment ':'due ')+esc(fullDate(l.due)):'')+'</div>'
   +(l.inst&&l.inst.amt>0&&left>0?'<div class="hint">Fixed payment '+esc(money(l.inst.amt))+' '+esc(({weekly:'every week',biweekly:'every 2 weeks',monthly:'every month'})[l.inst.freq]||'')+' · about '+loanLeftN(l)+' payment'+(loanLeftN(l)===1?'':'s')+' left</div>':'')
   +'<div class="big num" style="font-size:28px">'+esc(money(left))+' <span class="small muted" style="font-weight:600">left</span></div>'
   +(l.note?'<div class="hint">'+esc(l.note)+'</div>':'')
   +(hist?'<div class="card" style="padding:0 12px">'+hist+'</div>':'')
   +(left>0?'<label class="field"><span>'+(owe?'Payment':'Payment received')+' ('+esc(S.settings.cur)+')</span><input class="amount" name="amt" inputmode="decimal" value="'+(loanPay(l)/100).toFixed(2)+'"></label>'
-   +'<label class="field"><span>Interest or fees included ('+esc(S.settings.cur)+', optional)</span><input name="int" inputmode="decimal" placeholder="0.00"></label><div class="hint">Only the rest reduces what '+(owe?'you owe':'is owed')+'. The interest is recorded as '+(owe?'spending':'income')+'.</div>'
+   +(l.int>0?'<div class="hint">The interest is already in the total, so enter the whole payment. The interest part is recorded as '+(owe?'spending':'income')+' for you.</div>':'<label class="field"><span>Interest or fees included ('+esc(S.settings.cur)+', optional)</span><input name="int" inputmode="decimal" placeholder="0.00"></label><div class="hint">Only the rest reduces what '+(owe?'you owe':'is owed')+'. The interest is recorded as '+(owe?'spending':'income')+'.</div>')
    +'<label class="field"><span>Date</span><input type="date" name="date" value="'+today()+'"></label>'
    +'<label class="field"><span>'+(owe?'Paid from':'Received in')+'</span><select name="acc"><option value="">Do not record in my accounts</option>'+accOpts(accById(S.settings.lastAcc)?S.settings.lastAcc:S.accounts[0]&&S.accounts[0].id)+'</select></label>':'<div><span class="pill ok">Settled</span></div>')
   +'<div class="err" role="alert" id="derr"></div>'
   +'<div class="actions">'+(left>0?'<button class="btn pri grow" type="submit">Record payment</button>':'')+'<button class="btn" type="button" data-act="editLoan" data-id="'+l.id+'">Edit loan</button><button class="btn ghost" type="button" data-close>Close</button></div></form>',
  function(f){
-  var tot=parseAmt(f.amt.value),it=parseAmt(f.int.value)||0;if(!(tot>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
+  var tot=parseAmt(f.amt.value),it=f.int?(parseAmt(f.int.value)||0):0;if(!(tot>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
   if(it>=tot){$('#derr').textContent='Interest must be less than the payment.';return}
-  var a=tot-it;
+  var a=tot-it,ip=0;
+  if(l.int>0){var ipaid=l.pay.reduce(function(q,y){return q+(y.ip||0)},0),irem=Math.max(0,l.int-ipaid);ip=tot>=left?irem:Math.min(irem,Math.round(tot*l.int/loanTot(l)));a=tot}
   if(a>left){$('#derr').textContent='The principal is more than what is left ('+money(left)+').';return}
   if(!f.date.value){$('#derr').textContent='Pick a date.';return}
-  var p={id:uid(),date:f.date.value,amt:a};if(it>0)p.int=it;
+  var p={id:uid(),date:f.date.value,amt:a};if(it>0)p.int=it;if(ip>0)p.ip=ip;
   if(f.acc.value){
    var cid=null;if(owe){var lp=S.cats.filter(function(c){return c.name==='Loan payments'&&c.parent})[0];cid=lp?lp.id:null}
-   var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:a,acc:f.acc.value,to:null,cat:cid,date:f.date.value,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;S.settings.lastAcc=x.acc;
+   var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:a-ip,acc:f.acc.value,to:null,cat:cid,date:f.date.value,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;S.settings.lastAcc=x.acc;
    S.tx.push(x);p.tx=x.id;
-   if(it>0){var xi={id:uid(),ts:Date.now()+1,type:owe?'exp':'inc',amt:it,acc:f.acc.value,to:null,cat:ensureCat(owe?'Interest and fees':'Interest income',owe?'exp':'inc'),date:f.date.value,note:(owe?'Interest: ':'Interest from ')+l.who,trip:null,int:true};S.tx.push(xi);p.itx=xi.id}
+   if(it+ip>0){var xi={id:uid(),ts:Date.now()+1,type:owe?'exp':'inc',amt:it+ip,acc:f.acc.value,to:null,cat:ensureCat(owe?'Interest and fees':'Interest income',owe?'exp':'inc'),date:f.date.value,note:(owe?'Interest: ':'Interest from ')+l.who,trip:null,int:true};S.tx.push(xi);p.itx=xi.id}
   }
+  if(f.acc.value)l.pacc=f.acc.value;
   l.pay.push(p);
   if(l.inst&&l.inst.amt>0&&l.due&&tot>=l.inst.amt*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
   if(loanLeft(l)===0)l.due='';
   save();dlg.close();render(true);toast('Payment recorded');
  });
+}
+function lnInt(f,a){
+ var t=f.itot.value.trim(),r=parseFloat(String(f.irate.value).replace(',','.'))||0,mo=parseInt(f.imon.value,10)||0,ic=parseInt(f.icnt.value,10)||0,fq=f.ifreq.value;
+ if(t!==''){var v=parseAmt(f.itot.value);if(isNaN(v)||v<0)return {bad:1,int:0};return {int:v,rate:r,mon:mo}}
+ if(!mo&&ic&&fq==='monthly')mo=ic;
+ if(r>0&&mo>0)return {int:Math.round(a*r*mo/100),rate:r,mon:mo};
+ return {int:0,rate:r,mon:mo};
 }
 function loanEditDlg(id){
  var l=id?loanById(id):null,dir=l?l.dir:'owe';
@@ -2644,6 +2694,11 @@ function loanEditDlg(id){
   +'<label class="field"><span>Fixed payment each time ('+esc(S.settings.cur)+', optional)</span><input name="iamt" inputmode="decimal" placeholder="0.00" value="'+(l&&l.inst&&l.inst.amt?(l.inst.amt/100).toFixed(2):'')+'"></label>'
   +'<label class="field"><span>Repeats</span><select name="ifreq">'+Object.keys(FREQ).map(function(k){return '<option value="'+k+'"'+((l&&l.inst?l.inst.freq:'monthly')===k?' selected':'')+'>'+FREQ[k]+'</option>'}).join('')+'</select></label>'
   +'<label class="field"><span>Or number of payments (optional)</span><input name="icnt" inputmode="numeric" maxlength="3" placeholder="e.g. 6"></label>'
+  +'<div class="card" style="padding:12px;display:grid;gap:8px"><b>Interest (optional)</b>'
+  +'<label class="field" style="margin:0"><span>Interest rate (% per month, flat)</span><input name="irate" inputmode="decimal" placeholder="e.g. 3.5" value="'+(l&&l.irate?l.irate:'')+'"></label>'
+  +'<label class="field" style="margin:0"><span>For how many months</span><input name="imon" inputmode="numeric" maxlength="3" placeholder="e.g. 3" value="'+(l&&l.imon?l.imon:'')+'"></label>'
+  +'<label class="field" style="margin:0"><span>Or total interest ('+esc(S.settings.cur)+')</span><input name="itot" inputmode="decimal" placeholder="0.00" value="'+(l&&l.int?(l.int/100).toFixed(2):'')+'"></label>'
+  +'<div class="hint" data-li aria-live="polite"></div></div>'
   +'<div class="hint">For installment loans like SLoan: set the date of the next payment, the fixed amount and how often. The next date moves forward each time you record a payment.</div>'
   +'<label class="field"><span>Note (optional)</span><input type="text" name="note" maxlength="120" value="'+esc(l?l.note||'':'')+'" autocomplete="off"></label>'
   +(l&&l.tx&&S.tx.some(function(x){return x.id===l.tx})?'<div class="hint">Recorded in '+esc((accById(S.tx.filter(function(x){return x.id===l.tx})[0].acc)||{name:'your account'}).name)+'. Changing the amount updates it.</div>'
@@ -2657,7 +2712,10 @@ function loanEditDlg(id){
   var o={who:w,dir:f.dir.value,amt:a,due:f.due.value||'',note:f.note.value.trim()};
   var ia=f.iamt.value.trim()===''?0:parseAmt(f.iamt.value),ic2=parseInt(f.icnt.value,10)||0;
   if(isNaN(ia)||ia<0){$('#derr').textContent='Fixed payment must be zero or more.';return}
-  if(!ia&&ic2>0)ia=Math.ceil(a/ic2);
+  var iv=lnInt(f,a);if(iv.bad){$('#derr').textContent='Interest must be a number, zero or more.';return}
+  if(l&&iv.int<(l.pay||[]).reduce(function(q,y){return q+(y.ip||0)},0)){$('#derr').textContent='Interest cannot be less than the interest already paid.';return}
+  o.int=iv.int;o.irate=iv.rate||0;o.imon=iv.mon||0;
+  if(!ia&&ic2>0)ia=Math.ceil((a+o.int)/ic2);
   o.inst=ia>0?{amt:ia,freq:f.ifreq.value,day:+((o.due||today()).slice(8,10))}:null;
   if(o.inst&&!o.due){o.due=advDate(today(),o.inst.freq,o.inst.day)}
   var lt=l?S.tx.filter(function(x){return x.id===l.tx})[0]:null,tgt=l||o;
@@ -2668,7 +2726,10 @@ function loanEditDlg(id){
    S.tx.push(x);tgt.tx=x.id;S.settings.lastAcc=x.acc}
   save();dlg.close();render(true);toast('Saved');
  });
- $('form',dlg).who.focus();
+ var lf=$('form',dlg);
+ function lnShow(){var a=parseAmt(lf.amt.value)||0,v=lnInt(lf,a),h=lf.querySelector('[data-li]');if(!h)return;h.textContent=v.bad?'':(a>0&&v.int>0?'You will pay back '+money(a+v.int)+' ('+money(a)+' + '+money(v.int)+' interest).'+(parseInt(lf.icnt.value,10)>0?' About '+money(Math.ceil((a+v.int)/parseInt(lf.icnt.value,10)))+' each time.':''):'Leave blank if there is no interest.')}
+ lf.addEventListener('input',lnShow);lf.addEventListener('change',lnShow);lnShow();
+ lf.who.focus();
 }
 
 /* ================= dashboard date range (remembered) ================= */
@@ -3380,6 +3441,7 @@ var ACTS={
  avClear:function(el){var f=el.closest('form');f.av.value='';f.img.value='';avRefresh(f)},
  avUpload:function(el){var f=el.closest('form'),i=f.avfile;i.onchange=function(){var fl=i.files&&i.files[0];if(!fl)return;shrink(fl,160,.82).then(function(u){f.img.value=u;f.av.value='';avRefresh(f)}).catch(function(){toast('That picture could not be read')})};i.click()},
  lockToggle:function(){if(S.settings.pinHash)rmPinDlg();else pinDlg()},
+ recPaid:function(el){var r=S.recurring.filter(function(x){return x.id===el.dataset.id})[0];if(r)recPaid(r)},recSkip:function(el){var r=S.recurring.filter(function(x){return x.id===el.dataset.id})[0];if(r)recSkip(r)},
  newRec:function(){recDlg()},editRec:function(el){recDlg(el.dataset.id)},
  delRec:function(el){S.recurring=S.recurring.filter(function(r){return r.id!==el.dataset.id});save();dlg.close();render(true);toast('Deleted')},
  delTpl:function(el){S.templates=S.templates.filter(function(r){return r.id!==el.dataset.id});save();render(true)},
@@ -3412,6 +3474,7 @@ var ACTS={
  editContrib:function(el){contribDlg(el.dataset.id,el.dataset.e)},
  delContrib:function(el){var g=goalById(el.dataset.id),rest=g.log.filter(function(x){return x.id!==el.dataset.e}),sum=rest.reduce(function(a,x){return a+x.amt},0);
   if(sum<0){$('#derr').textContent='Removing this would leave a negative balance.';return}var gone=g.log.filter(function(x){return x.id===el.dataset.e})[0];if(gone&&gone.tx)S.tx=S.tx.filter(function(t){return t.id!==gone.tx});g.log=rest;save();dlg.close();render(true);toast('Entry deleted')},
+ quickPaid:function(el){var l=loanById(el.dataset.id);if(l)loanQuick(l)},
  openLoan:function(el){loanDlg(el.dataset.id)},newLoan:function(){loanEditDlg()},editLoan:function(el){loanEditDlg(el.dataset.id)},
  delLoan:function(el){var id=el.dataset.id;ask('Delete this loan and its payment history? Payments already recorded in your accounts stay.').then(function(ok){if(!ok)return;S.loans=S.loans.filter(function(l){return l.id!==id});save();dlg.close();render(true);toast('Loan deleted')})},
  delPay:function(el){var l=loanById(el.dataset.id),p=l.pay.filter(function(x){return x.id===el.dataset.p})[0];if(p)S.tx=S.tx.filter(function(t){return t.id!==p.tx&&t.id!==p.itx});l.pay=l.pay.filter(function(x){return x.id!==el.dataset.p});save();render(true);loanDlg(l.id)},
