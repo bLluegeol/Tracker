@@ -18,3 +18,9 @@ Menu > Backup and data > Export backup, then in the installed app use Restore ba
 Profiles are included in each profile's own backup (export each profile separately).
 Privacy: the repo only holds the app, never your data. Public repos show the code to anyone,
 which is fine since there is no personal data in it.
+
+NEW in this version
+- Long-press the installed app icon for shortcuts (Add expense, Add income, Transfer, Monthly review, Paste a message).
+- Fingerprint/face unlock only works in the installed https app (GitHub Pages), after you set a PIN.
+- After uploading, close and reopen the app twice so the new version replaces the cached one.
+- New app icon (wallet with cash and a debit card). If the old icon still shows on your phone, remove the app from the home screen and install it again.
