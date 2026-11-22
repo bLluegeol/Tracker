@@ -2429,8 +2429,8 @@ var MENU=[
  ['Plan',[['more','subs','repeat','Subscriptions'],['more','bills','cal','Bills calendar'],['more','mrev','chart','Monthly review'],['more','year','chart','Year in review']]],
  ['Setup',[['more','logos','bank','Brand logos'],['more','recur','repeat','Repeats and templates'],['more','cat','tag','Categories'],['more','look','sun','Appearance'],['more','lock','shield','App lock'],['more','data','shield','Backup and data'],['more','help','flag','How it works']]]
 ];
-var APP_VER='2.4';
-var APP_NEW=['Safe to spend on Home, bills Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank and paycheck plan','Paste a statement and share backup','How it works guide and this update button'];
+var APP_VER='2.6';
+var APP_NEW=['Paycheck plan now fits any schedule: once, twice or three times a month on your own dates, every 2 weeks or weekly, with an amount for each payday','Exit confirmation: going back from Home asks Yes or No before closing the app','Safe to spend, bill Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank, paycheck plan, paste a statement and share backup'];
 function verCmp(a,b){a=String(a).split('.');b=String(b).split('.');for(var i=0;i<Math.max(a.length,b.length);i++){var x=+a[i]||0,y=+b[i]||0;if(x!==y)return x<y?-1:1}return 0}
 function newList(){return '<ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:4px">'+APP_NEW.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'}
 function updFooter(){
@@ -2628,7 +2628,7 @@ function goalDlg(id){
 function pHelp(){
  return '<section class="card"><div class="sh">How DiGe Budget works</div><div class="hint">Tap a topic to read about it. Every feature in the app is explained here.</div></section>'
   +acc('h_new','What is new','Version '+APP_VER,newList(),true)
-  +acc('h_start',"Getting started","The basics","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>DiGe Budget is a private budget tracker. Everything you enter stays on this phone. There is no account, no sign-in and no internet needed once it is installed.</div><div><b>First steps:</b> add your accounts (cash, bank, e-wallet, cards) with their current balances, then record spending and income with the + button. Your balances, reports and budgets update by themselves.</div><div><b>Moving around:</b> the bottom bar has Home, Log, Budgets, Reports and More. The menu button (top left) lists every page. Swipe back or use the phone's back button to go to the previous page. Only Home exits the app.</div><div><b>Install it:</b> open the app in your browser, use the browser menu and choose Add to Home screen. It then works offline like any other app.</div></div>",false)
+  +acc('h_start',"Getting started","The basics","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>DiGe Budget is a private budget tracker. Everything you enter stays on this phone. There is no account, no sign-in and no internet needed once it is installed.</div><div><b>First steps:</b> add your accounts (cash, bank, e-wallet, cards) with their current balances, then record spending and income with the + button. Your balances, reports and budgets update by themselves.</div><div><b>Moving around:</b> the bottom bar has Home, Log, Budgets, Reports and More. The menu button (top left) lists every page. Swipe back or use the phone's back button to go to the previous page. Going back from Home asks if you want to exit; answer Yes to close the app.</div><div><b>Install it:</b> open the app in your browser, use the browser menu and choose Add to Home screen. It then works offline like any other app.</div></div>",false)
   +acc('h_home',"Home and widgets","What the dashboard shows","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Home is made of cards: time frame, key numbers, safe to spend, balances, action items, insights, quick actions, accounts, income vs spending, daily chart, spending structure, trips, goals, credits, budgets and recent transactions.</div><div><b>Time frame</b> (the small strip at the top) changes the period for the whole dashboard: today, 7 or 30 days, 3 months, 12 months, this year, all time or custom dates.</div><div><b>Customize:</b> you can show, hide and reorder cards from the Home settings.</div><div><b>Action items</b> list things that need you: bills due, budgets near the limit, backups overdue.</div><div><b>Safe to spend</b> takes the money you hold in your accounts, subtracts bills and repeats still due this month, and divides what is left by the days remaining. It is a daily guide, not a limit.</div></div>",false)
   +acc('h_tx',"Adding transactions","Expenses, income, transfers","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Tap + and choose <b>Expense</b>, <b>Income</b> or <b>Transfer</b> (moving money between your own accounts). Pick the account, category, date and an optional note. Notes you used before are suggested as you type.</div><div><b>Paying a credit card:</b> record a transfer from the account you paid with to the card.</div><div><b>Split:</b> on an expense, split part of the amount into other categories (for example groceries and household from one receipt).</div><div><b>Receipt photo:</b> attach a photo to any transaction. Photos stay on this device and are not part of the backup file.</div><div><b>Templates:</b> save a transaction you repeat and add it again in one tap.</div><div><b>Paste a message:</b> paste a bank or GCash text message and the app fills in the amount, account, date and note.</div><div><b>Extras:</b> tags, foreign currency with an exchange rate, salary deductions (SSS, PhilHealth, tax) and making any entry repeat.</div><div><b>Log</b> shows every transaction. Tap one to edit or delete it.</div></div>",false)
   +acc('h_acc',"Accounts","Cash, banks, wallets, cards","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Add each place you keep money. Pick your bank or e-wallet to get its logo and color, or upload your own. Colors can be picked from a color wheel.</div><div><b>Starting balance</b> is what the account held when you began. The balance is that plus your transactions.</div><div><b>Leave out of total balance</b> hides an account from totals (useful for money that is not really yours to spend).</div><div><b>Savings interest:</b> enter the yearly rate and tax and the app estimates monthly interest and adds it automatically. When the bank credits the real amount, use Add interest from the bank and it replaces the estimate.</div><div><b>Credit and SPayLater accounts</b> count as money you owe, with an optional limit, due day, statement cut-off day, interest rate and minimum payment.</div><div><b>Reconcile:</b> open an account and tap Reconcile with bank. Type the balance your bank shows. If it differs, one tap adds an adjustment that does not count in spending reports. You can undo it.</div></div>",false)
@@ -2636,42 +2636,82 @@ function pHelp(){
   +acc('h_goals',"Goals and savings","Save for something","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Create a goal with a target, an optional deadline and an optional starting amount. Add or withdraw money, and choose an account so your balance stays accurate.</div><div><b>Auto-save:</b> set an amount and frequency and the goal adds it for you.</div><div><b>Deadline</b> goals show how much to save per week or month to finish on time.</div><div><b>Interest:</b> if the goal money sits in a bank, enter the yearly rate to see estimated earnings.</div><div>Goals are good for sinking funds too, such as annual fees, holidays or a car repair fund.</div></div>",false)
   +acc('h_credit',"Credit cards, loans and utang","What you owe and are owed","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Credit cards</b> show what you owe, limit used and the due date. If you set a cut-off day, you also see the closed statement, what is still to pay, the pay-by date and what goes on the next statement.</div><div><b>Loans:</b> choose I owe or Owed to me. Enter the amount, who, the date (you can back-date old ones) and optionally interest. You can enter an interest rate and months, or the total interest directly.</div><div><b>Installments:</b> set the payment amount, how often, and a different first payment if needed. The app works out how many payments are left.</div><div><b>Mark paid</b> records the next payment with today's date and takes it from your chosen account. It can be undone.</div><div><b>Utang owed to you:</b> partial payments are fine. Each one reduces what is left and the history keeps every payment.</div><div><b>SPayLater and similar:</b> add the account, then add each purchase with its number of installments. The app groups them into monthly bills and you mark each bill paid.</div></div>",false)
   +acc('h_rep',"Subscriptions, repeats and bills","Things that come back","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Repeats</b> create transactions automatically (rent, salary, allowances) weekly, every 2 weeks or monthly.</div><div><b>Subscriptions</b> are repeating costs. You can set one to ask first (it waits for you to confirm instead of posting by itself), pause it, or skip just the next charge.</div><div><b>Bills calendar</b> lists everything due by date: card due dates, loan payments, subscriptions and goal deadlines. Items due soon have a Paid button.</div><div><b>Notifications:</b> in Backup and data you can turn on due-date alerts. They appear when you open the app, once a day. The app cannot wake your phone by itself because it has no server.</div></div>",false)
-  +acc('h_plan',"Planning tools","Look ahead","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Time deposits:</b> record amount, rate, tax, term and start date. The app shows the maturity date and the interest you will get, and counts the principal in your net worth. When it matures, Mark paid out adds the money and interest to the account you choose.</div><div><b>Debt planner:</b> lists your cards and loans you owe. Choose highest interest first (cheapest) or smallest first (fastest wins), set how much you can pay monthly and see your debt-free month and interest. For cards, set the interest rate and minimum in the card's settings for better numbers.</div><div><b>Net worth history:</b> a 12-month chart of your account balances after cards, calculated from your transactions. It does not include loans.</div><div><b>Paycheck plan:</b> enter your pay, how often and the next payday. It shows bills due before then, money to set aside for goals with deadlines, and what is left to spend per day.</div><div><b>Trips:</b> group expenses under a trip to see its total cost.</div></div>",false)
+  +acc('h_plan',"Planning tools","Look ahead","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Time deposits:</b> record amount, rate, tax, term and start date. The app shows the maturity date and the interest you will get, and counts the principal in your net worth. When it matures, Mark paid out adds the money and interest to the account you choose.</div><div><b>Debt planner:</b> lists your cards and loans you owe. Choose highest interest first (cheapest) or smallest first (fastest wins), set how much you can pay monthly and see your debt-free month and interest. For cards, set the interest rate and minimum in the card's settings for better numbers.</div><div><b>Net worth history:</b> a 12-month chart of your account balances after cards, calculated from your transactions. It does not include loans.</div><div><b>Paycheck plan:</b> choose how you are paid: once, twice or three times a month on the days your company uses (for example the 15th and 30th, each with its own amount), every 2 weeks or every week. For the current pay period it shows bills due, money to set aside for goals with deadlines, and what is left to spend per day, and lists your next paydays.</div><div><b>Trips:</b> group expenses under a trip to see its total cost.</div></div>",false)
   +acc('h_data',"Backup and data","Keep your data safe","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Your data lives only in this browser on this phone. Clearing browser data or losing the phone loses it, so back up regularly.</div><div><b>Export backup</b> saves a file. <b>Share backup</b> sends it straight to Google Drive, WhatsApp or email. Keep a copy somewhere other than the phone.</div><div><b>Restore</b> loads a backup file. The app also keeps automatic snapshots on the device as a safety net.</div><div><b>Backup reminders</b> nudge you weekly, every 2 weeks or monthly.</div><div><b>Excel export</b> and <b>CSV import</b> work with spreadsheets and bank files. <b>Paste a statement</b> reads lines copied from GCash, Maya or a bank, lets you tick which to add, and skips ones already in your log.</div><div><b>Profiles:</b> keep separate sets of data (for example personal and business). Switch from the Profiles tile.</div></div>",false)
   +acc('h_look',"Look, lock and privacy","Make it yours","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Appearance:</b> Classic or Glass look, light, dark or automatic, compact spacing and wallpapers.</div><div><b>App lock:</b> protect the app with a PIN. Fingerprint unlock works only when the app is installed on the home screen and opened over https.</div><div><b>Privacy:</b> nothing is sent anywhere. There is no tracking and no account. The only network use is loading the app itself the first time.</div><div><b>Brand logos:</b> set your own logos for banks and wallets.</div><div><b>Updates:</b> the menu shows your version number at the bottom. Tap Check for update and, if a newer version is online, the app refreshes itself. Your data is not touched. You need internet for this.</div></div>",false)
   +'<div class="hint" style="text-align:center">Version 2026 · works offline · your data stays on this phone</div>';
 }
 /* ================= paycheck plan ================= */
-function payNext(){var P=S.settings.pay;if(!P||!P.next)return '';var n=P.next,g=0;while(n<today()&&g++<400)n=advDate(n,P.freq,+P.next.slice(8,10));return n}
+var PAYM={m1:'Once a month',m2:'Twice a month',m3:'3 times a month',bi:'Every 2 weeks',wk:'Every week'};
+function payNorm(P){
+ if(!P)return null;
+ if(P.mode&&(P.mode==='days'||P.mode==='bi'||P.mode==='wk'))return P;
+ if(!(P.amt>0)||!P.next)return null;
+ if(P.freq==='weekly')return {mode:'wk',amt:P.amt,anchor:P.next};
+ if(P.freq==='biweekly')return {mode:'bi',amt:P.amt,anchor:P.next};
+ return {mode:'days',days:[{d:+P.next.slice(8,10),a:P.amt}]}}
+function payOk(P){P=payNorm(P);if(!P)return false;return P.mode==='days'?(P.days&&P.days.length>0&&P.days.every(function(x){return x.a>0&&x.d>=1&&x.d<=31})):(P.amt>0&&!!P.anchor)}
+function payDates(from,to){
+ var P=payNorm(S.settings.pay),o=[];if(!P||!payOk(P))return o;
+ if(P.mode==='days'){var k=from.slice(0,7),ke=to.slice(0,7),g=0;
+  while(k<=ke&&g++<40){var y=+k.slice(0,4),m=+k.slice(5,7)-1;P.days.forEach(function(x){var d=cutOn(y,m,x.d);if(d>=from&&d<=to)o.push({d:d,a:x.a})});k=addMonth(k,1)}}
+ else{var st=P.mode==='wk'?7:14,df=daysBetween(P.anchor,from),n=Math.floor(df/st),d=dateAdd(P.anchor,n*st),g2=0;
+  while(d<from&&g2++<5)d=dateAdd(d,st);while(d<=to&&g2++<200){o.push({d:d,a:P.amt});d=dateAdd(d,st)}}
+ return o.sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0})}
+function payPeriod(){
+ var t=today(),L=payDates(dateAdd(t,-70),dateAdd(t,70)),prev=null,next=null;
+ L.forEach(function(x){if(x.d<=t)prev=x;else if(!next)next=x});
+ return {prev:prev,next:next,list:L}}
+function paySummary(){var P=payNorm(S.settings.pay);if(!P)return '';
+ if(P.mode==='days')return P.days.map(function(x){return (x.d>=31?'last day':'day '+x.d)+' · '+money(x.a)}).join('  ·  ');
+ return PAYM[P.mode]+' · '+money(P.amt)}
 function pPay(){
- var P=S.settings.pay;
- if(!P||!(P.amt>0))return '<section class="card">'+empty('Tell the app how much you get paid and when. It will show what to set aside for bills and goals, and what is left to spend.','<button class="btn pri" data-act="payDlg">'+ic('plus')+'<span>Set up my paycheck</span></button>')+'</section>';
- var nx=payNext(),t=today(),days=Math.max(1,daysBetween(t,nx)),bills=[],k=t.slice(0,7),ks=[k,addMonth(k,1)];
- ks.forEach(function(m){billEvents(m).forEach(function(e){if(e.d>=t&&e.d<nx&&(e.k==='card'||e.k==='rec')&&e.amt>0)bills.push(e)})});
+ if(!payOk(S.settings.pay))return '<section class="card">'+empty('Tell the app how much you get paid and on which days. It handles once a month, twice a month, every 2 weeks, weekly or any dates your company uses. It then shows what to set aside for bills and goals, and what is left to spend.','<button class="btn pri" data-act="payDlg">'+ic('plus')+'<span>Set up my paycheck</span></button>')+'</section>';
+ var pp=payPeriod(),t=today();
+ if(!pp.prev||!pp.next)return '<section class="card"><div class="sh">Paycheck<span class="sp"><button class="btn ghost" data-act="payDlg">Change</button></span></div><div class="hint">Could not work out your paydays. Tap Change and check the days.</div></section>';
+ var from=pp.prev.d,nx=pp.next.d,amt=pp.prev.a,days=Math.max(1,daysBetween(from,nx)),left=Math.max(0,daysBetween(t,nx)),bills=[],ks=[from.slice(0,7),addMonth(from.slice(0,7),1),addMonth(from.slice(0,7),2)];
+ ks.forEach(function(m){billEvents(m).forEach(function(e){if(e.d>=from&&e.d<nx&&(e.k==='card'||e.k==='rec')&&e.amt>0)bills.push(e)})});
  var bsum=bills.reduce(function(q,e){return q+e.amt},0),gl=[],gsum=0,per=days/30.44;
  S.goals.forEach(function(g){var nd=goalNeed(g);if(nd.left>0&&nd.perMonth){var v=Math.round(nd.perMonth*Math.min(1,per));gl.push({n:g.name,v:v});gsum+=v}});
- var free=P.amt-bsum-gsum,bad=free<0;
- return '<section class="card"><div class="sh">Next payday<span class="sp"><button class="btn ghost" data-act="payDlg">Change</button></span></div><div class="big num">'+esc(money(P.amt))+'</div><div class="hint">'+esc(dShort(nx))+' · '+days+' day'+(days===1?'':'s')+' from now. This plan covers the time until then.</div></section>'
+ var free=amt-bsum-gsum,bad=free<0;
+ var up=pp.list.filter(function(x){return x.d>t}).slice(0,4);
+ return '<section class="card"><div class="sh">This pay period<span class="sp"><button class="btn ghost" data-act="payDlg">Change</button></span></div><div class="big num">'+esc(money(amt))+'</div>'
+  +'<div class="hint">Paid '+esc(dShort(from))+' · next payday <b>'+esc(dShort(nx))+'</b> ('+left+' day'+(left===1?'':'s')+' to go). The plan covers these '+days+' days.</div>'
+  +(up.length?'<div class="hint" style="margin-top:6px">Coming up: '+up.map(function(x){return esc(dShort(x.d))+' '+esc(money(x.a))}).join(' · ')+'</div>':'')+'</section>'
   +'<section class="card"><div class="sh">Where it goes</div>'
-  +'<div class="row" style="display:flex;justify-content:space-between;gap:8px;min-height:40px;align-items:center"><span>Bills due before then</span><b class="num">'+esc(money(bsum))+'</b></div>'
+  +'<div class="row" style="display:flex;justify-content:space-between;gap:8px;min-height:40px;align-items:center"><span>Bills due this period</span><b class="num">'+esc(money(bsum))+'</b></div>'
   +bills.slice(0,6).map(function(e){return '<div class="hint" style="display:flex;justify-content:space-between;gap:8px"><span>'+esc(e.t)+' · '+esc(dShort(e.d))+'</span><span class="num">'+esc(money(e.amt))+'</span></div>'}).join('')
   +'<div class="row" style="display:flex;justify-content:space-between;gap:8px;min-height:40px;align-items:center"><span>Set aside for goals</span><b class="num">'+esc(money(gsum))+'</b></div>'
   +gl.slice(0,6).map(function(e){return '<div class="hint" style="display:flex;justify-content:space-between;gap:8px"><span>'+esc(e.n)+'</span><span class="num">'+esc(money(e.v))+'</span></div>'}).join('')
   +'<div class="row" style="display:flex;justify-content:space-between;gap:8px;min-height:44px;align-items:center;border-top:1px solid var(--line)"><b>Left to spend</b><b class="num"'+(bad?' style="color:var(--err)"':'')+'>'+esc(money(free))+'</b></div>'
-  +(bad?'<div class="hint" style="color:var(--err)">This payday is short by '+esc(money(-free))+'.</div>':'<div class="hint">About <b class="num">'+esc(money(Math.floor(free/days)))+'</b> a day.</div>')+'</section>'
+  +(bad?'<div class="hint" style="color:var(--err)">This pay period is short by '+esc(money(-free))+'.</div>':'<div class="hint">About <b class="num">'+esc(money(Math.floor(free/days)))+'</b> a day.</div>')+'</section>'
+  +'<section class="card"><div class="sh">Your schedule</div><div>'+esc(paySummary())+'</div></section>'
   +'<div class="hint">Goals only count if they have a deadline, because that tells the app how much to save each month.</div>'}
 function payDlg(){
- var P=S.settings.pay||{};
- var last=sortTx(S.tx.filter(function(x){return x.type==='inc'&&!x.ln}))[0];
- openDlg('<form class="dform" novalidate><h2 id="dlg-t">Paycheck</h2>'
-  +'<label class="field"><span>Amount you receive ('+esc(S.settings.cur)+')</span><input class="amount" name="amt" inputmode="decimal" placeholder="0.00" value="'+(P.amt?(P.amt/100).toFixed(2):(last?(last.amt/100).toFixed(2):''))+'"></label>'
-  +'<label class="field"><span>How often</span><select name="freq">'+Object.keys(FREQ).map(function(k){return '<option value="'+k+'"'+((P.freq||'monthly')===k?' selected':'')+'>'+FREQ[k]+'</option>'}).join('')+'</select></label>'
-  +'<label class="field"><span>Next payday</span><input type="date" name="next" value="'+(P.next||dateAdd(today(),7))+'"></label>'
-  +'<div class="err" role="alert" id="derr"></div><div class="actions"><button class="btn pri grow" type="submit">Save</button><button class="btn" type="button" data-close>Cancel</button>'+(P.amt?'<button class="btn danger icon" type="button" data-act="payOff" aria-label="Remove">'+ic('x')+'</button>':'')+'</div></form>',
- function(f){var a=parseAmt(f.amt.value);if(!(a>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
-  if(!f.next.value){$('#derr').textContent='Pick the next payday.';return}
-  S.settings.pay={amt:a,freq:f.freq.value,next:f.next.value};save();dlg.close();render(true);toast('Saved')});
- $('form',dlg).amt.focus();
+ var P=payNorm(S.settings.pay)||{},last=sortTx(S.tx.filter(function(x){return x.type==='inc'&&!x.ln}))[0],la=last?(last.amt/100).toFixed(2):'';
+ var mode=P.mode==='bi'||P.mode==='wk'?P.mode:(P.days?'m'+Math.min(3,P.days.length):'m1'),dd=P.days||[];
+ var rows='';for(var i=0;i<3;i++){var x=dd[i]||{};rows+='<div class="prow" data-i="'+i+'" style="display:grid;grid-template-columns:90px 1fr;gap:8px"><label class="field" style="margin:0"><span>Day</span><input name="pd'+i+'" inputmode="numeric" maxlength="2" placeholder="'+[15,30,5][i]+'" value="'+(x.d?x.d:'')+'"></label><label class="field" style="margin:0"><span>Amount ('+esc(S.settings.cur)+')</span><input name="pa'+i+'" inputmode="decimal" placeholder="0.00" value="'+(x.a?(x.a/100).toFixed(2):'')+'"></label></div>'}
+ openDlg('<form class="dform" novalidate><h2 id="dlg-t">When do you get paid?</h2>'
+  +'<label class="field"><span>How often</span><select name="mode">'+Object.keys(PAYM).map(function(k){return '<option value="'+k+'"'+(mode===k?' selected':'')+'>'+PAYM[k]+'</option>'}).join('')+'</select></label>'
+  +'<div id="pm" style="display:grid;gap:8px">'+rows+'<div class="hint">Type the day of the month for each payday, like 15 and 30. Use 31 for the last day of the month; short months are handled for you. Each payday can have a different amount.</div></div>'
+  +'<div id="pw" style="display:grid;gap:8px"><label class="field" style="margin:0"><span>Amount each payday ('+esc(S.settings.cur)+')</span><input class="amount" name="wamt" inputmode="decimal" placeholder="0.00" value="'+(P.amt?(P.amt/100).toFixed(2):la)+'"></label>'
+  +'<label class="field" style="margin:0"><span>Any one payday (past or coming)</span><input type="date" name="anchor" value="'+(P.anchor||dateAdd(today(),7))+'"></label><div class="hint">The app counts every 1 or 2 weeks from that date.</div></div>'
+  +'<div class="err" role="alert" id="derr"></div><div class="actions"><button class="btn pri grow" type="submit">Save</button><button class="btn" type="button" data-close>Cancel</button>'+(P.mode?'<button class="btn danger icon" type="button" data-act="payOff" aria-label="Remove">'+ic('x')+'</button>':'')+'</div></form>',
+ function(f){
+  var m=f.mode.value,o;
+  if(m==='bi'||m==='wk'){var a=parseAmt(f.wamt.value);if(!(a>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
+   if(!f.anchor.value){$('#derr').textContent='Pick a payday date.';return}o={mode:m,amt:a,anchor:f.anchor.value}}
+  else{var n=+m.slice(1),days=[],seen={};
+   for(var i=0;i<n;i++){var d=parseInt(f['pd'+i].value,10),a2=parseAmt(f['pa'+i].value);
+    if(!(d>=1&&d<=31)){$('#derr').textContent='Payday '+(i+1)+': type a day from 1 to 31.';return}
+    if(!(a2>0)){$('#derr').textContent='Payday '+(i+1)+': enter an amount greater than zero.';return}
+    if(seen[d]){$('#derr').textContent='Two paydays have the same day.';return}seen[d]=1;days.push({d:d,a:a2})}
+   days.sort(function(x,y){return x.d-y.d});o={mode:'days',days:days}}
+  S.settings.pay=o;save();dlg.close();render(true);toast('Saved')});
+ var f=$('form',dlg);
+ function sync(){var m=f.mode.value,wk=m==='bi'||m==='wk',n=wk?0:+m.slice(1);$('#pm').style.display=wk?'none':'grid';$('#pw').style.display=wk?'grid':'none';
+  f.querySelectorAll('.prow').forEach(function(r){r.style.display=+r.dataset.i>=n?'none':'grid'})}
+ f.mode.addEventListener('change',sync);sync();
 }
 /* ================= paste a statement ================= */
 function stmtPasteDlg(){
@@ -3383,9 +3423,9 @@ var dlg=$('#dlg'),cfm=$('#cfm'),drawer=$('#drawer');
 function openDlg(html,onsubmit){dlg.innerHTML=html;dlg._submit=onsubmit;if(!dlg.open)dlg.showModal();}
 dlg.addEventListener('submit',function(e){e.preventDefault();if(dlg._submit)dlg._submit(e.target)});
 [dlg,cfm,drawer,pal].forEach(function(d){d.addEventListener('click',function(e){if(e.target===d)d.close()})});
-function ask(msg,ok){
+function ask(msg,ok,no){
  return new Promise(function(res){
-  cfm.innerHTML='<form method="dialog" class="dform"><h2 id="cfm-t">'+esc(msg)+'</h2><div class="actions"><button class="btn danger grow" value="ok">'+esc(ok||'Delete')+'</button><button class="btn grow" value="cancel">Cancel</button></div></form>';
+  cfm.innerHTML='<form method="dialog" class="dform"><h2 id="cfm-t">'+esc(msg)+'</h2><div class="actions"><button class="btn danger grow" value="ok">'+esc(ok||'Delete')+'</button><button class="btn grow" value="cancel">'+esc(no||'Cancel')+'</button></div></form>';
   cfm.onclose=function(){res(cfm.returnValue==='ok')};cfm.returnValue='';cfm.showModal();
  });
 }
@@ -4019,7 +4059,12 @@ function hSync(){
  hPush(false);
 }
 function hInit(){
- var base=function(){try{history.replaceState({n:0,id:0,v:vsnap()},'')}catch(e){}HN.n=0;HN.ids=[0];HN.key=vkeyOf(vsnap());HN.ready=true};
+ var base=function(){try{var c=history.state;if(c&&c.g)history.replaceState({n:0,id:0,g:1,v:vsnap()},'');else{history.replaceState({guard:1},'');history.pushState({n:0,id:0,g:1,v:vsnap()},'')}}catch(e){}HN.n=0;HN.ids=[0];HN.key=vkeyOf(vsnap());HN.ready=true};
+ function exitAsk(){
+  try{history.pushState({n:0,id:0,g:1,v:vsnap()},'')}catch(e){}HN.n=0;HN.ids=[0];
+  if(HN.asking)return;HN.asking=true;
+  ask('Exit DiGe Budget?','Yes','No').then(function(ok){HN.asking=false;if(!ok)return;HN.exiting=true;HN.skip=0;try{history.go(-2)}catch(e){}setTimeout(function(){try{window.close()}catch(e){}HN.exiting=false},400)})}
+ HN.exitAsk=exitAsk;
  var st=history.state;
  if(st&&st.n>0){HN.skip=1;HN.init=true;try{history.go(-st.n)}catch(e){HN.skip=0;HN.init=false;base()}}else base();
  var sm=HTMLDialogElement.prototype.showModal;
@@ -4031,6 +4076,8 @@ function hInit(){
  },true);
  window.addEventListener('popstate',function(e){
   if(HN.skip>0){HN.skip--;if(HN.init&&HN.skip===0){HN.init=false;base()}return}
+  if(HN.exiting)return;
+  if(e.state&&e.state.guard){if(HN.st.length){HN.st.slice().forEach(function(d){d._hid=null;try{d.close()}catch(x){}});HN.st.length=0}HN.exitAsk();return}
   var st=e.state||{n:0,v:null};HN.n=st.n||0;
   if(HN.st.length){var d=HN.st.pop();d._hid=null;try{d.close()}catch(x){}return}
   if(st.ov){try{history.back()}catch(x){}return}
