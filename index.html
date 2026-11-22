@@ -2567,12 +2567,14 @@ function loanQuick(l){
   var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:tot-ip,acc:acc,to:null,cat:cid,date:dt,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;S.tx.push(x);p.tx=x.id;
   if(ip>0){var xi={id:uid(),ts:Date.now()+1,type:owe?'exp':'inc',amt:ip,acc:acc,to:null,cat:ensureCat(owe?'Interest and fees':'Interest income',owe?'exp':'inc'),date:dt,note:(owe?'Interest: ':'Interest from ')+l.who,trip:null,int:true};S.tx.push(xi);p.itx=xi.id}
  }
+ var need=(l.inst&&l.inst.first>0&&!l.pay.length)?l.inst.first:(l.inst?l.inst.amt:0);
  l.pay.push(p);
- if(l.inst&&l.inst.amt>0&&l.due&&tot>=l.inst.amt*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
+ if(l.inst&&l.inst.amt>0&&l.due&&tot>=need*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
  if(loanLeft(l)===0)l.due='';
  save();render(true);
  toast((owe?'Paid ':'Received ')+money(tot)+' today ('+fullDate(dt)+')',function(){l.pay=snap.pay;l.due=snap.due;S.tx=S.tx.filter(function(t){return t.id!==p.tx&&t.id!==p.itx});save();render(true)});
 }
+function loanDate(l){return l.date||(l.created?isoDate(new Date(l.created)):today())}
 function loanTot(l){return l.amt+(l.int||0)}
 function loanLeft(l){return Math.max(0,loanTot(l)-loanPaid(l))}
 function dueInfo(a){
@@ -2606,11 +2608,11 @@ function lenderBadge(who,px){
  var fg=lum(m.c)>.62?'#303D48':'#fff';
  return '<span class="badge" aria-hidden="true" style="width:'+px+'px;height:'+px+'px;background:'+m.c+';color:'+fg+';font-size:'+bFit(m.s,px)+'px" data-n="'+Math.min(m.s.length,5)+'">'+esc(m.s)+'</span>';
 }
-function loanPay(l){var left=loanLeft(l);return l.inst&&l.inst.amt>0?Math.min(left,l.inst.amt):left}
-function loanLeftN(l){return l.inst&&l.inst.amt>0?Math.ceil(loanLeft(l)/l.inst.amt):0}
+function loanPay(l){var left=loanLeft(l);if(l.inst&&l.inst.first>0&&!l.pay.length)return Math.min(left,l.inst.first);return l.inst&&l.inst.amt>0?Math.min(left,l.inst.amt):left}
+function loanLeftN(l){if(!(l.inst&&l.inst.amt>0))return 0;var left=loanLeft(l);if(l.inst.first>0&&!l.pay.length)return left>l.inst.first?1+Math.ceil((left-l.inst.first)/l.inst.amt):1;return Math.ceil(left/l.inst.amt)}
 function loanOcc(l,first,last){var o=[],d=l.due,left=loanLeft(l),n=0;if(!left||!d)return o;
  if(!(l.inst&&l.inst.amt>0)){if(d>=first&&d<=last)o.push({d:d,amt:left});return o}
- var rem=left;while(d<=last&&rem>0&&n++<60){var a=Math.min(rem,l.inst.amt);if(d>=first)o.push({d:d,amt:a});rem-=a;d=advDate(d,l.inst.freq,l.inst.day)}return o}
+ var rem=left,fst=l.inst.first>0&&!l.pay.length;while(d<=last&&rem>0&&n++<60){var a=Math.min(rem,fst&&n===1?l.inst.first:l.inst.amt);if(d>=first)o.push({d:d,amt:a});rem-=a;d=advDate(d,l.inst.freq,l.inst.day)}return o}
 function loanCard(l){
  var left=loanLeft(l),paid=loanPaid(l),p=loanTot(l)>0?Math.min(100,paid/loanTot(l)*100):0,pill='';
  if(left===0)pill='<span class="pill ok">Settled</span>';
@@ -2644,7 +2646,7 @@ function loanDlg(id){
  var l=loanById(id);if(!l)return;var left=loanLeft(l),owe=l.dir==='owe';
  var hist=l.pay.slice().sort(function(a,b){return a.date<b.date?1:-1}).map(function(p){return '<div class="row" style="min-height:44px"><span class="grow"><div class="t num">'+esc(money(p.amt))+(p.int?' + '+esc(money(p.int))+' interest':'')+(p.ip?' (incl. '+esc(money(p.ip))+' interest)':'')+'</div><div class="s">'+esc(dayLabel(p.date))+(p.tx?' · in your accounts':'')+'</div></span><button type="button" class="btn ghost icon" data-act="delPay" data-id="'+l.id+'" data-p="'+p.id+'" aria-label="Delete payment">'+ic('x')+'</button></div>'}).join('');
  openDlg('<form class="dform" novalidate><h2 id="dlg-t">'+esc(l.who)+'</h2>'
-  +'<div class="hint">'+(owe?'You owe':'Owes you')+' · '+esc(money(loanTot(l)))+' total'+(l.int>0?' (incl. '+esc(money(l.int))+' interest)':'')+(l.due?' · '+(l.inst&&l.inst.amt>0?'next payment ':'due ')+esc(fullDate(l.due)):'')+'</div>'
+  +'<div class="hint">'+(owe?'You owe':'Owes you')+' · '+esc(money(loanTot(l)))+' total · since '+esc(fullDate(loanDate(l)))+(l.int>0?' (incl. '+esc(money(l.int))+' interest)':'')+(l.due?' · '+(l.inst&&l.inst.amt>0?'next payment ':'due ')+esc(fullDate(l.due)):'')+'</div>'
   +(l.inst&&l.inst.amt>0&&left>0?'<div class="hint">Fixed payment '+esc(money(l.inst.amt))+' '+esc(({weekly:'every week',biweekly:'every 2 weeks',monthly:'every month'})[l.inst.freq]||'')+' · about '+loanLeftN(l)+' payment'+(loanLeftN(l)===1?'':'s')+' left</div>':'')
   +'<div class="big num" style="font-size:28px">'+esc(money(left))+' <span class="small muted" style="font-weight:600">left</span></div>'
   +(l.note?'<div class="hint">'+esc(l.note)+'</div>':'')
@@ -2670,8 +2672,9 @@ function loanDlg(id){
    if(it+ip>0){var xi={id:uid(),ts:Date.now()+1,type:owe?'exp':'inc',amt:it+ip,acc:f.acc.value,to:null,cat:ensureCat(owe?'Interest and fees':'Interest income',owe?'exp':'inc'),date:f.date.value,note:(owe?'Interest: ':'Interest from ')+l.who,trip:null,int:true};S.tx.push(xi);p.itx=xi.id}
   }
   if(f.acc.value)l.pacc=f.acc.value;
+  var need=(l.inst&&l.inst.first>0&&!l.pay.length)?l.inst.first:(l.inst?l.inst.amt:0);
   l.pay.push(p);
-  if(l.inst&&l.inst.amt>0&&l.due&&tot>=l.inst.amt*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
+  if(l.inst&&l.inst.amt>0&&l.due&&tot>=need*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
   if(loanLeft(l)===0)l.due='';
   save();dlg.close();render(true);toast('Payment recorded');
  });
@@ -2690,10 +2693,12 @@ function loanEditDlg(id){
   +'<label class="field"><span>Person or lender</span><input type="text" name="who" maxlength="40" value="'+esc(l?l.who:'')+'" placeholder="e.g. Kuya Ben, SSS loan" autocomplete="off"></label>'
   +(l?'':'<div class="chips scroll" role="group" aria-label="Common lenders">'+['SLoan','GLoan','GCredit','GGives','SPayLater','Maya Credit','Billease','Atome','Home Credit','Tala','Cashalo','SSS loan','Pag-IBIG loan','Bank loan'].map(function(n){return '<button type="button" class="chip" data-act="lender" data-v="'+esc(n)+'" style="display:inline-flex;align-items:center;gap:6px;padding-left:8px">'+lenderBadge(n,22)+'<span>'+esc(n)+'</span></button>'}).join('')+'</div>')
   +'<label class="field"><span>Amount ('+esc(S.settings.cur)+')</span><input class="amount" name="amt" inputmode="decimal" placeholder="0.00" value="'+(l?(l.amt/100).toFixed(2):'')+'"></label>'
+  +'<label class="field"><span>Date of the loan (change it if this was before today)</span><input type="date" name="ldate" max="'+today()+'" value="'+(l?loanDate(l):today())+'"></label>'
   +'<label class="field"><span>Next payment or due date (optional)</span><input type="date" name="due" value="'+(l&&l.due?l.due:'')+'"></label>'
   +'<label class="field"><span>Fixed payment each time ('+esc(S.settings.cur)+', optional)</span><input name="iamt" inputmode="decimal" placeholder="0.00" value="'+(l&&l.inst&&l.inst.amt?(l.inst.amt/100).toFixed(2):'')+'"></label>'
   +'<label class="field"><span>Repeats</span><select name="ifreq">'+Object.keys(FREQ).map(function(k){return '<option value="'+k+'"'+((l&&l.inst?l.inst.freq:'monthly')===k?' selected':'')+'>'+FREQ[k]+'</option>'}).join('')+'</select></label>'
   +'<label class="field"><span>Or number of payments (optional)</span><input name="icnt" inputmode="numeric" maxlength="3" placeholder="e.g. 6"></label>'
+  +'<label class="field"><span>First payment is different ('+esc(S.settings.cur)+', optional)</span><input name="ifirst" inputmode="decimal" placeholder="0.00" value="'+(l&&l.inst&&l.inst.first?(l.inst.first/100).toFixed(2):'')+'"></label>'
   +'<div class="card" style="padding:12px;display:grid;gap:8px"><b>Interest (optional)</b>'
   +'<label class="field" style="margin:0"><span>Interest rate (% per month, flat)</span><input name="irate" inputmode="decimal" placeholder="e.g. 3.5" value="'+(l&&l.irate?l.irate:'')+'"></label>'
   +'<label class="field" style="margin:0"><span>For how many months</span><input name="imon" inputmode="numeric" maxlength="3" placeholder="e.g. 3" value="'+(l&&l.imon?l.imon:'')+'"></label>'
@@ -2709,25 +2714,33 @@ function loanEditDlg(id){
   var w=f.who.value.trim(),a=parseAmt(f.amt.value);
   if(!w){$('#derr').textContent='Enter a name.';return}
   if(!(a>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
-  var o={who:w,dir:f.dir.value,amt:a,due:f.due.value||'',note:f.note.value.trim()};
+  var ld=f.ldate.value||today();if(ld>today()){$('#derr').textContent='The loan date cannot be in the future.';return}
+  var o={who:w,dir:f.dir.value,amt:a,date:ld,due:f.due.value||'',note:f.note.value.trim()};
   var ia=f.iamt.value.trim()===''?0:parseAmt(f.iamt.value),ic2=parseInt(f.icnt.value,10)||0;
   if(isNaN(ia)||ia<0){$('#derr').textContent='Fixed payment must be zero or more.';return}
   var iv=lnInt(f,a);if(iv.bad){$('#derr').textContent='Interest must be a number, zero or more.';return}
   if(l&&iv.int<(l.pay||[]).reduce(function(q,y){return q+(y.ip||0)},0)){$('#derr').textContent='Interest cannot be less than the interest already paid.';return}
   o.int=iv.int;o.irate=iv.rate||0;o.imon=iv.mon||0;
-  if(!ia&&ic2>0)ia=Math.ceil((a+o.int)/ic2);
+  var fp=f.ifirst.value.trim()===''?0:parseAmt(f.ifirst.value);
+  if(isNaN(fp)||fp<0){$('#derr').textContent='First payment must be zero or more.';return}
+  if(ia>0&&ic2>0){$('#derr').textContent='Use either a fixed payment or a number of payments, not both. Clear one of them.';return}
+  if(ia>0&&ia*20<a+o.int&&!f.ifirst.dataset.ok&&ia<a/10){f.ifirst.dataset.ok='1';$('#derr').textContent='Fixed payment is very small ('+money(ia)+'). Check it, then tap Save again if it is right.';return}
+  if(fp>0&&ic2>=2){ia=Math.max(1,Math.ceil((a+o.int-fp)/(ic2-1)))}
+  else if(!ia&&ic2>0)ia=Math.ceil((a+o.int)/ic2);
+  if(fp>a+o.int){$('#derr').textContent='First payment is more than the total.';return}
   o.inst=ia>0?{amt:ia,freq:f.ifreq.value,day:+((o.due||today()).slice(8,10))}:null;
-  if(o.inst&&!o.due){o.due=advDate(today(),o.inst.freq,o.inst.day)}
+  if(o.inst&&fp>0)o.inst.first=fp;
+  if(o.inst&&!o.due){var dd=ld,gg=0;o.inst.day=+ld.slice(8,10);do{dd=advDate(dd,o.inst.freq,o.inst.day)}while(dd<today()&&gg++<400);o.due=dd}
   var lt=l?S.tx.filter(function(x){return x.id===l.tx})[0]:null,tgt=l||o;
   if(l)Object.assign(l,o);else{o.id=uid();o.created=Date.now();o.pay=[];S.loans.push(o)}
-  if(lt){lt.amt=a;lt.note=(o.dir==='owed'?'Lent to ':'Borrowed from ')+w}
+  if(lt){lt.amt=a;lt.date=ld;lt.note=(o.dir==='owed'?'Lent to ':'Borrowed from ')+w}
   else if(f.lacc&&f.lacc.value&&accById(f.lacc.value)){
-   var x={id:uid(),ts:Date.now(),type:o.dir==='owed'?'exp':'inc',amt:a,acc:f.lacc.value,to:null,cat:null,date:today(),note:(o.dir==='owed'?'Lent to ':'Borrowed from ')+w,trip:null,ln:true};
+   var x={id:uid(),ts:Date.now(),type:o.dir==='owed'?'exp':'inc',amt:a,acc:f.lacc.value,to:null,cat:null,date:ld,note:(o.dir==='owed'?'Lent to ':'Borrowed from ')+w,trip:null,ln:true};
    S.tx.push(x);tgt.tx=x.id;S.settings.lastAcc=x.acc}
   save();dlg.close();render(true);toast('Saved');
  });
  var lf=$('form',dlg);
- function lnShow(){var a=parseAmt(lf.amt.value)||0,v=lnInt(lf,a),h=lf.querySelector('[data-li]');if(!h)return;h.textContent=v.bad?'':(a>0&&v.int>0?'You will pay back '+money(a+v.int)+' ('+money(a)+' + '+money(v.int)+' interest).'+(parseInt(lf.icnt.value,10)>0?' About '+money(Math.ceil((a+v.int)/parseInt(lf.icnt.value,10)))+' each time.':''):'Leave blank if there is no interest.')}
+ function lnShow(){var a=parseAmt(lf.amt.value)||0,v=lnInt(lf,a),h=lf.querySelector('[data-li]');if(!h)return;h.textContent=v.bad?'':(a>0&&v.int>0?'You will pay back '+money(a+v.int)+' ('+money(a)+' + '+money(v.int)+' interest).'+(function(){var n=parseInt(lf.icnt.value,10)||0,fp=parseAmt(lf.ifirst.value)||0,tt=a+v.int;if(n>0&&fp>0&&n>=2)return ' First '+money(fp)+', then '+money(Math.ceil((tt-fp)/(n-1)))+' x '+(n-1)+'.';return n>0?' About '+money(Math.ceil(tt/n))+' each time.':''})():'Leave blank if there is no interest.')}
  lf.addEventListener('input',lnShow);lf.addEventListener('change',lnShow);lnShow();
  lf.who.focus();
 }
