@@ -511,6 +511,7 @@ html[data-look=glass][data-wall=lightgray] .stat[class*=tk-]{background:var(--ca
 .avpick{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}.avpick button{aspect-ratio:1;border:2px solid transparent;border-radius:50%;padding:0;background:none;cursor:pointer;min-height:44px}.avpick button[aria-pressed=true]{border-color:var(--acc);box-shadow:0 0 0 2px var(--sel)}.avpick .av{width:100%!important;height:100%!important}
 .avhead{display:flex;align-items:center;gap:14px}
 .prow{align-items:center}
+.prow>.kp,.prow>[data-kptoggle]{grid-column:1/-1}
 .slice{cursor:pointer;transition:stroke-width .15s,opacity .15s}
 .slice:hover,.slice:focus-visible{stroke-width:21;outline:none}
 .donutbox .lg .row[data-act=slice]:active{background:var(--hl)}
@@ -841,7 +842,9 @@ function fix(d){
  d.loans.forEach(function(l){(l.pay||[]).forEach(function(p){if(p.tx){var t=d.tx.filter(function(x){return x.id===p.tx})[0];if(t)t.ln=true}})});
  d.v=2;return d;
 }
+var NOSAVE=false;
 function save(){
+ if(NOSAVE)return;
  try{localStorage.setItem(KEY,JSON.stringify(S));if(!canSave){canSave=true;banner()}if(typeof snapSoon==='function')snapSoon()}
  catch(e){if(canSave){canSave=false;banner()}}
 }
@@ -1164,12 +1167,30 @@ function pBudgetsMonthly(){
  }else h+='<section class="card">'+empty('No budgets yet. Set a monthly limit for a category to track it here.','<button class="btn pri" data-act="setBudget">'+ic('plus')+'<span>Set budget</span></button>')+'</section>';
  return h;
 }
+function repOverview(r,s,sp){
+ var te=r.to<today()?r.to:today(),days=Math.max(1,daysBetween(r.from,te)+1),cnt=txEx(r.from,r.to).length,top=null,tv=0,h=wNet();
+ Object.keys(sp).forEach(function(c){if(sp[c]>tv){tv=sp[c];top=c}});
+ var hist=nwHist(12),cur=hist[hist.length-1].v,first=hist[0].v;
+ h+='<section class="card"><div class="sh">Net worth trend<span class="sp"><button class="btn ghost" data-act="goNw">Details</button></span></div>'+nwChart(hist)
+  +'<div class="split" style="margin-top:6px"><span class="hint">'+esc(monthLabel(hist[0].k))+'</span><span class="hint">Money in accounts, after cards · '+(cur>=first?'up ':'down ')+'<b class="num">'+esc(money(Math.abs(cur-first)))+'</b> in 12 months</span></div></section>';
+ function tile(l,v,x){return '<div class="stat"><div class="sl2"><span>'+l+'</span></div><div class="sv num">'+v+'</div>'+(x?'<div class="hint">'+x+'</div>':'')+'</div>'}
+ h+='<section class="card"><div class="sh">Key numbers · '+esc(r.label)+'</div><div class="stats" style="grid-template-columns:1fr 1fr">'
+  +tile('Spent per day',esc(money(Math.round(s.exp/days))),days+' day'+(days===1?'':'s'))
+  +tile('Income per day',esc(money(Math.round(s.inc/days))),'')
+  +tile('Saved',esc(s.inc>0?Math.round((s.inc-s.exp)/s.inc*100)+'%':'—'),esc(money(s.inc-s.exp,true)))
+  +tile('Entries',String(cnt),'')
+  +(top?tile('Biggest category',esc(money(tv)),esc(top==='_none'?'No category':catName(top))):'')
+  +'</div></section>';
+ h+=wGauge()+wGoals()+wCredits();
+ return h}
 function pReports(){
  var r=rangeFor(V.period),s=sumsR(r.from,r.to),net=s.inc-s.exp,sp=catSpendR(r.from,r.to);
  var h=rangeCtl([['month','Month'],['30d','30 days'],['3m','3 months'],['1y','1 year'],['custom','Custom']],V.period,'rep');
  h+='<section class="card"><div class="sh">Net · '+esc(r.label)+'</div><div class="big num'+(net<0?'':' inc')+'">'+esc(money(net,true))+'</div>'
   +'<div class="split"><span>In <b class="num inc">'+esc(money(s.inc,true))+'</b></span><span>Out <b class="num">'+esc(money(-s.exp))+'</b></span>'
   +(s.inc>0?'<span>Saved <b class="num">'+Math.round(net/s.inc*100)+'%</b></span>':'')+'</div></section>';
+ h+='<div class="sh" style="margin:8px 0 0">Where you stand</div>'+repOverview(r,s,sp);
+ h+='<div class="sh" style="margin:8px 0 0">Spending and trends</div>';
  h+='<section class="card"><div class="sh">Expense structure</div>'+spendBlock(sp,'Spending by category',txEx(r.from,r.to))+'</section>';
  h+='<section class="card"><div class="sh">Balance trend</div>'+trendBlock(r)+'</section>';
  var end=V.period==='month'?V.month:thisMonth(),n=V.period==='1y'?12:6,ms=[];
@@ -1734,6 +1755,26 @@ function avatar(p,px){px=px||32;
  if(typeof p.av==='number'&&AVS[p.av])return '<span class="av" aria-hidden="true" style="width:'+px+'px;height:'+px+'px;background:'+AVS[p.av].bg+'">'+avSvg(p.av)+'</span>';
  return '<span class="av" aria-hidden="true" style="width:'+px+'px;height:'+px+'px;font-size:'+Math.round(px*.45)+'px;background:'+p.color+'">'+esc((p.name||'?').trim().charAt(0).toUpperCase())+'</span>'}
 function profChip(){var p=prCur();return '<button type="button" class="prof" data-act="profMenu" aria-label="Switch profile">'+avatar(p,32)+'<span class="grow t"><b>'+esc(p.name)+'</b><span class="small muted">'+(PR.list.length>1?'Switch profile':'Profile')+'</span></span>'+ic('right')+'</button>'}
+function profGo(id){
+ if(id===PID){dlg.close();return}
+ var p=PR.list.filter(function(x){return x.id===id})[0];if(!p)return;
+ PR.active=id;prSave();
+ var ok=false;try{ok=JSON.parse(localStorage.getItem(PRK)).active===id}catch(e){}
+ if(!ok){toast('Could not switch. Storage is full or blocked.');return}
+ toast('Switching to '+p.name+'...');
+ try{if(dlg.open)dlg.close()}catch(e){}try{if(drawer.open)drawer.close()}catch(e){}
+ setTimeout(function(){location.replace(location.href.split('#')[0].split('?')[0])},300);
+ setTimeout(function(){try{toast('Still here? Close the app fully and open it again.')}catch(e){}},4000)}
+function profWipe(id){
+ var p=PR.list.filter(function(x){return x.id===id})[0];if(!p)return;
+ ask('Delete all data in "'+p.name+'"? Its accounts, transactions, budgets, goals and saved copies are erased. The profile stays, empty. Back it up first if you might need it. This cannot be undone.','Delete data').then(function(ok){if(!ok)return;
+  if(id===PID){NOSAVE=true;clearTimeout(snapT)}
+  var pf=id==='main'?'':id+':',idx=[];
+  try{idx=JSON.parse(localStorage.getItem('dgb_snaps_'+id)||'[]')}catch(e){}
+  try{localStorage.removeItem(id==='main'?'dgb_data_v1':'dgb_data_v1_'+id);localStorage.removeItem(id==='main'?'dgb_acc_state':'dgb_acc_state_'+id);localStorage.removeItem('dgb_snaps_'+id)}catch(e){}
+  idx.forEach(function(x){idbDel(pf+'snap_'+x.k)});idbDel(pf+'logos');idbDel(pf+'wall');
+  if(id===PID){clearTimeout(snapT);toast('Data deleted');try{dlg.close()}catch(e){}setTimeout(function(){location.replace(location.href.split('#')[0].split('?')[0])},300)}
+  else{toast('Data deleted');profForm(id)}})}
 function profDlg(){
  if(drawer.open)drawer.close();
  openDlg('<div class="dform"><h2 id="dlg-t">Profiles</h2><div class="hint">Each profile keeps its own accounts, transactions, budgets, goals and PIN on this phone. Nothing is shared between them.</div>'
@@ -1753,14 +1794,15 @@ function profForm(id){
   +'<div class="field"><span>Color (for the initial)</span>'+swatches('color',col,COLORS)+'</div>'
   +(p?'':'<div class="hint">The new profile starts empty. You can load sample data or restore a backup into it.</div>')
   +'<div class="err" role="alert" id="derr"></div>'
-  +'<div class="actions"><button class="btn pri grow" type="submit">'+(p?'Save':'Create and switch')+'</button><button class="btn" type="button" data-act="profMenu">Cancel</button>'+(p&&PR.list.length>1?'<button class="btn danger icon" type="button" data-act="profDel" data-id="'+p.id+'" aria-label="Delete profile">'+ic('x')+'</button>':'')+'</div></form>',
+  +'<div class="actions"><button class="btn pri grow" type="submit">'+(p?'Save':'Create and switch')+'</button><button class="btn" type="button" data-act="profMenu">Cancel</button></div>'
+  +(p?'<div class="card" style="padding:12px;display:grid;gap:8px;box-shadow:none"><b>Delete</b><div class="hint">Choose what to remove. Both ask you to confirm first.</div><button class="btn danger wide" type="button" data-act="profWipe" data-id="'+p.id+'">'+ic('x')+'<span>Delete data only (keep the profile)</span></button>'+(PR.list.length>1?'<button class="btn danger wide" type="button" data-act="profDel" data-id="'+p.id+'">'+ic('x')+'<span>Delete the whole profile</span></button>':'<div class="hint">This is your only profile, so it cannot be removed. Add another profile first to delete this one.</div>')+'</div>':'')+'</form>',
  function(f){
   var n=f.name.value.trim();if(!n){$('#derr').textContent='Give the profile a name.';return}
   if(PR.list.some(function(x){return x.id!==id&&x.name.toLowerCase()===n.toLowerCase()})){$('#derr').textContent='That name is already used.';return}
   var c=f.color.value||col;
   var avv=f.av.value===''?null:+f.av.value,imgv=f.img.value||'';
   if(p){p.name=n;p.color=c;if(imgv){p.img=imgv;delete p.av}else if(avv!==null){p.av=avv;delete p.img}else{delete p.av;delete p.img}prSave();dlg.close();render(true);profDlg()}
-  else{var np={id:'p'+Date.now().toString(36),name:n,color:c};if(imgv)np.img=imgv;else if(avv!==null)np.av=avv;PR.list.push(np);PR.active=np.id;prSave();location.reload()}
+  else{var np={id:'p'+Date.now().toString(36),name:n,color:c};if(imgv)np.img=imgv;else if(avv!==null)np.av=avv;PR.list.push(np);PR.active=np.id;prSave();try{dlg.close()}catch(e){}toast('Creating '+np.name+'...');setTimeout(function(){location.replace(location.href.split('#')[0].split('?')[0])},300)}
  });
 }
 
@@ -2429,8 +2471,8 @@ var MENU=[
  ['Plan',[['more','subs','repeat','Subscriptions'],['more','bills','cal','Bills calendar'],['more','mrev','chart','Monthly review'],['more','year','chart','Year in review']]],
  ['Setup',[['more','logos','bank','Brand logos'],['more','recur','repeat','Repeats and templates'],['more','cat','tag','Categories'],['more','look','sun','Appearance'],['more','lock','shield','App lock'],['more','data','shield','Backup and data'],['more','help','flag','How it works']]]
 ];
-var APP_VER='2.6';
-var APP_NEW=['Paycheck plan now fits any schedule: once, twice or three times a month on your own dates, every 2 weeks or weekly, with an amount for each payday','Exit confirmation: going back from Home asks Yes or No before closing the app','Safe to spend, bill Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank, paycheck plan, paste a statement and share backup'];
+var APP_VER='2.9';
+var APP_NEW=['Fixes: switching profiles, the number pad in the paycheck dialog, and the menu closing while you scroll it. New: delete a profile or only its data','Reports now open with Where you stand: net worth, 12-month net worth trend, key numbers, budget used, goals and credits','10 dashboard presets for different needs (Customize on Home, then pick one)','Paycheck plan now fits any schedule: once, twice or three times a month on your own dates, every 2 weeks or weekly, with an amount for each payday','Exit confirmation: going back from Home asks Yes or No before closing the app','Safe to spend, bill Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank, paycheck plan, paste a statement and share backup'];
 function verCmp(a,b){a=String(a).split('.');b=String(b).split('.');for(var i=0;i<Math.max(a.length,b.length);i++){var x=+a[i]||0,y=+b[i]||0;if(x!==y)return x<y?-1:1}return 0}
 function newList(){return '<ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:4px">'+APP_NEW.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'}
 function updFooter(){
@@ -2457,8 +2499,9 @@ function openMenu(){
 }
 var tx0=null;
 function initDrawer(){
- drawer.addEventListener('touchstart',function(e){tx0=e.touches[0].clientX},{passive:true});
- drawer.addEventListener('touchend',function(e){if(tx0!=null&&e.changedTouches[0].clientX-tx0<-60)drawer.close();tx0=null},{passive:true});
+ var ty0=0,tt0=0;
+ drawer.addEventListener('touchstart',function(e){tx0=e.touches[0].clientX;ty0=e.touches[0].clientY;tt0=Date.now()},{passive:true});
+ drawer.addEventListener('touchend',function(e){if(tx0!=null){var dx=e.changedTouches[0].clientX-tx0,dy=e.changedTouches[0].clientY-ty0;if(dx<-70&&Math.abs(dx)>Math.abs(dy)*2.5&&Date.now()-tt0<600)drawer.close()}tx0=null},{passive:true});
 }
 
 /* ================= trips ================= */
@@ -2629,15 +2672,15 @@ function pHelp(){
  return '<section class="card"><div class="sh">How DiGe Budget works</div><div class="hint">Tap a topic to read about it. Every feature in the app is explained here.</div></section>'
   +acc('h_new','What is new','Version '+APP_VER,newList(),true)
   +acc('h_start',"Getting started","The basics","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>DiGe Budget is a private budget tracker. Everything you enter stays on this phone. There is no account, no sign-in and no internet needed once it is installed.</div><div><b>First steps:</b> add your accounts (cash, bank, e-wallet, cards) with their current balances, then record spending and income with the + button. Your balances, reports and budgets update by themselves.</div><div><b>Moving around:</b> the bottom bar has Home, Log, Budgets, Reports and More. The menu button (top left) lists every page. Swipe back or use the phone's back button to go to the previous page. Going back from Home asks if you want to exit; answer Yes to close the app.</div><div><b>Install it:</b> open the app in your browser, use the browser menu and choose Add to Home screen. It then works offline like any other app.</div></div>",false)
-  +acc('h_home',"Home and widgets","What the dashboard shows","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Home is made of cards: time frame, key numbers, safe to spend, balances, action items, insights, quick actions, accounts, income vs spending, daily chart, spending structure, trips, goals, credits, budgets and recent transactions.</div><div><b>Time frame</b> (the small strip at the top) changes the period for the whole dashboard: today, 7 or 30 days, 3 months, 12 months, this year, all time or custom dates.</div><div><b>Customize:</b> you can show, hide and reorder cards from the Home settings.</div><div><b>Action items</b> list things that need you: bills due, budgets near the limit, backups overdue.</div><div><b>Safe to spend</b> takes the money you hold in your accounts, subtracts bills and repeats still due this month, and divides what is left by the days remaining. It is a daily guide, not a limit.</div></div>",false)
+  +acc('h_home',"Home and widgets","What the dashboard shows","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Home is made of cards: time frame, key numbers, safe to spend, balances, action items, insights, quick actions, accounts, income vs spending, daily chart, spending structure, trips, goals, credits, budgets and recent transactions.</div><div><b>Time frame</b> (the small strip at the top) changes the period for the whole dashboard: today, 7 or 30 days, 3 months, 12 months, this year, all time or custom dates.</div><div><b>Customize:</b> tap the pencil on Home to show, hide and reorder cards. At the top are <b>10 presets</b> that set up the whole dashboard in one tap: Everyday, Minimal, Control daily spending, Save more, Pay off debt, Bills and payday, Stick to budgets, Understand my spending, Travel and Grow net worth. You can undo a preset and keep tweaking afterwards.</div><div><b>Action items</b> list things that need you: bills due, budgets near the limit, backups overdue.</div><div><b>Safe to spend</b> takes the money you hold in your accounts, subtracts bills and repeats still due this month, and divides what is left by the days remaining. It is a daily guide, not a limit.</div></div>",false)
   +acc('h_tx',"Adding transactions","Expenses, income, transfers","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Tap + and choose <b>Expense</b>, <b>Income</b> or <b>Transfer</b> (moving money between your own accounts). Pick the account, category, date and an optional note. Notes you used before are suggested as you type.</div><div><b>Paying a credit card:</b> record a transfer from the account you paid with to the card.</div><div><b>Split:</b> on an expense, split part of the amount into other categories (for example groceries and household from one receipt).</div><div><b>Receipt photo:</b> attach a photo to any transaction. Photos stay on this device and are not part of the backup file.</div><div><b>Templates:</b> save a transaction you repeat and add it again in one tap.</div><div><b>Paste a message:</b> paste a bank or GCash text message and the app fills in the amount, account, date and note.</div><div><b>Extras:</b> tags, foreign currency with an exchange rate, salary deductions (SSS, PhilHealth, tax) and making any entry repeat.</div><div><b>Log</b> shows every transaction. Tap one to edit or delete it.</div></div>",false)
   +acc('h_acc',"Accounts","Cash, banks, wallets, cards","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Add each place you keep money. Pick your bank or e-wallet to get its logo and color, or upload your own. Colors can be picked from a color wheel.</div><div><b>Starting balance</b> is what the account held when you began. The balance is that plus your transactions.</div><div><b>Leave out of total balance</b> hides an account from totals (useful for money that is not really yours to spend).</div><div><b>Savings interest:</b> enter the yearly rate and tax and the app estimates monthly interest and adds it automatically. When the bank credits the real amount, use Add interest from the bank and it replaces the estimate.</div><div><b>Credit and SPayLater accounts</b> count as money you owe, with an optional limit, due day, statement cut-off day, interest rate and minimum payment.</div><div><b>Reconcile:</b> open an account and tap Reconcile with bank. Type the balance your bank shows. If it differs, one tap adds an adjustment that does not count in spending reports. You can undo it.</div></div>",false)
-  +acc('h_bud',"Budgets and reports","Limits and charts","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Budgets:</b> set a monthly limit per category. Bars turn amber near the limit and red when over. Unused budget does not carry over.</div><div><b>Reports:</b> spending by category, income vs spending, trends and comparisons for any period.</div><div><b>Monthly review</b> and <b>Year in review</b> summarize your month or year: totals, biggest categories, best and worst months.</div><div><b>Categories</b> can be renamed, added and grouped under a parent. Reports roll sub-categories up into their parent.</div></div>",false)
+  +acc('h_bud',"Budgets and reports","Limits and charts","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Budgets:</b> set a monthly limit per category. Bars turn amber near the limit and red when over. Unused budget does not carry over.</div><div><b>Reports:</b> pick a period at the top. You get the net for the period, then <b>Where you stand</b> (net worth, a 12-month net worth trend, key numbers like spending per day, budget used, goals and credits), then spending by category, balance trend, cash flow, forecast, weekday and place breakdowns.</div><div><b>Monthly review</b> and <b>Year in review</b> summarize your month or year: totals, biggest categories, best and worst months.</div><div><b>Categories</b> can be renamed, added and grouped under a parent. Reports roll sub-categories up into their parent.</div></div>",false)
   +acc('h_goals',"Goals and savings","Save for something","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Create a goal with a target, an optional deadline and an optional starting amount. Add or withdraw money, and choose an account so your balance stays accurate.</div><div><b>Auto-save:</b> set an amount and frequency and the goal adds it for you.</div><div><b>Deadline</b> goals show how much to save per week or month to finish on time.</div><div><b>Interest:</b> if the goal money sits in a bank, enter the yearly rate to see estimated earnings.</div><div>Goals are good for sinking funds too, such as annual fees, holidays or a car repair fund.</div></div>",false)
   +acc('h_credit',"Credit cards, loans and utang","What you owe and are owed","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Credit cards</b> show what you owe, limit used and the due date. If you set a cut-off day, you also see the closed statement, what is still to pay, the pay-by date and what goes on the next statement.</div><div><b>Loans:</b> choose I owe or Owed to me. Enter the amount, who, the date (you can back-date old ones) and optionally interest. You can enter an interest rate and months, or the total interest directly.</div><div><b>Installments:</b> set the payment amount, how often, and a different first payment if needed. The app works out how many payments are left.</div><div><b>Mark paid</b> records the next payment with today's date and takes it from your chosen account. It can be undone.</div><div><b>Utang owed to you:</b> partial payments are fine. Each one reduces what is left and the history keeps every payment.</div><div><b>SPayLater and similar:</b> add the account, then add each purchase with its number of installments. The app groups them into monthly bills and you mark each bill paid.</div></div>",false)
   +acc('h_rep',"Subscriptions, repeats and bills","Things that come back","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Repeats</b> create transactions automatically (rent, salary, allowances) weekly, every 2 weeks or monthly.</div><div><b>Subscriptions</b> are repeating costs. You can set one to ask first (it waits for you to confirm instead of posting by itself), pause it, or skip just the next charge.</div><div><b>Bills calendar</b> lists everything due by date: card due dates, loan payments, subscriptions and goal deadlines. Items due soon have a Paid button.</div><div><b>Notifications:</b> in Backup and data you can turn on due-date alerts. They appear when you open the app, once a day. The app cannot wake your phone by itself because it has no server.</div></div>",false)
   +acc('h_plan',"Planning tools","Look ahead","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Time deposits:</b> record amount, rate, tax, term and start date. The app shows the maturity date and the interest you will get, and counts the principal in your net worth. When it matures, Mark paid out adds the money and interest to the account you choose.</div><div><b>Debt planner:</b> lists your cards and loans you owe. Choose highest interest first (cheapest) or smallest first (fastest wins), set how much you can pay monthly and see your debt-free month and interest. For cards, set the interest rate and minimum in the card's settings for better numbers.</div><div><b>Net worth history:</b> a 12-month chart of your account balances after cards, calculated from your transactions. It does not include loans.</div><div><b>Paycheck plan:</b> choose how you are paid: once, twice or three times a month on the days your company uses (for example the 15th and 30th, each with its own amount), every 2 weeks or every week. For the current pay period it shows bills due, money to set aside for goals with deadlines, and what is left to spend per day, and lists your next paydays.</div><div><b>Trips:</b> group expenses under a trip to see its total cost.</div></div>",false)
-  +acc('h_data',"Backup and data","Keep your data safe","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Your data lives only in this browser on this phone. Clearing browser data or losing the phone loses it, so back up regularly.</div><div><b>Export backup</b> saves a file. <b>Share backup</b> sends it straight to Google Drive, WhatsApp or email. Keep a copy somewhere other than the phone.</div><div><b>Restore</b> loads a backup file. The app also keeps automatic snapshots on the device as a safety net.</div><div><b>Backup reminders</b> nudge you weekly, every 2 weeks or monthly.</div><div><b>Excel export</b> and <b>CSV import</b> work with spreadsheets and bank files. <b>Paste a statement</b> reads lines copied from GCash, Maya or a bank, lets you tick which to add, and skips ones already in your log.</div><div><b>Profiles:</b> keep separate sets of data (for example personal and business). Switch from the Profiles tile.</div></div>",false)
+  +acc('h_data',"Backup and data","Keep your data safe","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Your data lives only in this browser on this phone. Clearing browser data or losing the phone loses it, so back up regularly.</div><div><b>Export backup</b> saves a file. <b>Share backup</b> sends it straight to Google Drive, WhatsApp or email. Keep a copy somewhere other than the phone.</div><div><b>Restore</b> loads a backup file. The app also keeps automatic snapshots on the device as a safety net.</div><div><b>Backup reminders</b> nudge you weekly, every 2 weeks or monthly.</div><div><b>Excel export</b> and <b>CSV import</b> work with spreadsheets and bank files. <b>Paste a statement</b> reads lines copied from GCash, Maya or a bank, lets you tick which to add, and skips ones already in your log.</div><div><b>Profiles:</b> keep separate sets of data (for example personal and business). Open Profiles from More or the menu, tap a profile to switch, and tap the pencil to rename it, change its avatar, <b>delete only its data</b> (the profile stays, empty) or <b>delete the whole profile</b>.</div></div>",false)
   +acc('h_look',"Look, lock and privacy","Make it yours","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Appearance:</b> Classic or Glass look, light, dark or automatic, compact spacing and wallpapers.</div><div><b>App lock:</b> protect the app with a PIN. Fingerprint unlock works only when the app is installed on the home screen and opened over https.</div><div><b>Privacy:</b> nothing is sent anywhere. There is no tracking and no account. The only network use is loading the app itself the first time.</div><div><b>Brand logos:</b> set your own logos for banks and wallets.</div><div><b>Updates:</b> the menu shows your version number at the bottom. Tap Check for update and, if a newer version is online, the app refreshes itself. Your data is not touched. You need internet for this.</div></div>",false)
   +'<div class="hint" style="text-align:center">Version 2026 · works offline · your data stays on this phone</div>';
 }
@@ -3366,8 +3409,25 @@ function backupNote(){
   return '<section class="card" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:200px"><b>Back up your data</b><div class="hint">Everything lives only on this device. '+(S.settings.lastBackup?'Last backup '+esc(new Date(S.settings.lastBackup).toLocaleDateString())+'.':'No backup yet.')+'</div></div><button class="btn" data-act="exportJson">'+ic('down')+'<span>Back up</span></button></section>';
  return '';
 }
+var DASH_PRESETS=[
+ {n:'Everyday',d:'A balanced view. The standard layout.',l:null},
+ {n:'Minimal',d:'Only your balance, quick buttons and latest entries. Nothing extra.',l:['balance','quick','recent']},
+ {n:'Control daily spending',d:'See what is safe to spend today and how your pace compares.',l:['range','safe','gauge','pace','daily','weekday','top','forecast','recent']},
+ {n:'Save more',d:'Savings rate, goals and where to cut back.',l:['range','stats','saverate','inout','goals','cattrend','forecast','networth']},
+ {n:'Pay off debt',d:'Cards, loans, interest paid and the next due dates.',l:['range','credits','actions','safe','interest','networth','accounts','recent']},
+ {n:'Bills and payday',d:'What is due, what is safe to spend and where the month is heading.',l:['range','safe','actions','credits','forecast','budgets','quick','recent']},
+ {n:'Stick to budgets',d:'Budget gauge, category limits and what is pushing you over.',l:['range','gauge','budgets','structure','cattrend','top','insights','quick']},
+ {n:'Understand my spending',d:'Charts and patterns: trends, weekdays, places and heat map.',l:['range','stats','insights','cashflow','structure','weekday','merchants','heat','cattrend','trend']},
+ {n:'Travel',d:'Active trips, daily spend and your biggest costs while away.',l:['range','trips','quick','daily','top','accounts','recent']},
+ {n:'Grow net worth',d:'Net worth, balance trend, savings and interest earned.',l:['range','networth','balance','trend','accounts','goals','saverate','interest','cashflow']}
+];
+function presetList(i){var p=DASH_PRESETS[i];return p.l?p.l.filter(function(id){return DASH[id]}):DASH_DEFAULT.filter(function(id){return DASH[id]})}
+function presetsCard(){
+ var cur=dashList().join(',');
+ return acc('dp','Presets','10 ready-made layouts',DASH_PRESETS.map(function(p,i){var l=presetList(i),on=l.join(',')===cur;
+  return '<button type="button" class="row" data-act="dashPreset" data-p="'+i+'" style="width:100%;min-height:60px;text-align:left;display:flex;align-items:center;gap:10px;background:none;border:0;border-bottom:1px solid var(--line);padding:8px 0;color:inherit;font:inherit;cursor:pointer"><span style="flex:1;min-width:0"><b>'+esc(p.n)+'</b><div class="hint">'+esc(p.d)+'</div><div class="hint">'+l.length+' widgets</div></span>'+(on?'<span class="pill ok">In use</span>':'<span class="pill">Use</span>')+'</button>'}).join('')+'<div class="hint" style="margin-top:8px">A preset replaces your current layout. You can undo it, and still add, remove or move widgets afterwards.</div>',true)}
 function dashEditor(){
- var d=dashList(),h='<section class="card"><div class="sh">Customize dashboard<span class="sp"><button class="btn pri" data-act="dashDone">Done</button></span></div><div class="hint" style="margin-bottom:8px">Hold the grip on the left and drag to move a widget up or down. Tap a name to preview it. The arrows also work.</div>';
+ var d=dashList(),h='<section class="card"><div class="sh">Customize dashboard<span class="sp"><button class="btn pri" data-act="dashDone">Done</button></span></div></section>'+presetsCard()+'<section class="card"><div class="sh">Your layout</div><div class="hint" style="margin-bottom:8px">Hold the grip on the left and drag to move a widget up or down. Tap a name to preview it. The arrows also work.</div>';
  h+='<div class="dl">';
  d.forEach(function(id,i){var w=DASH[id];
   h+='<div class="dr" data-id="'+id+'"><div class="row" style="min-height:60px"><button type="button" class="btn icon ghost dgrip" aria-label="Drag to move '+esc(w.t)+'">'+ic('grip')+'</button><button type="button" class="grow pvt" data-act="dashPrev" data-id="'+id+'" aria-expanded="false" aria-controls="pv-'+id+'"><div class="t">'+esc(w.t)+'</div><div class="s">'+esc(w.d)+'</div><div class="s pvh">Tap to preview</div></button>'
@@ -3890,8 +3950,9 @@ var ACTS={
  profMenu:function(){profDlg()},
  profAdd:function(){profForm()},
  profEdit:function(el){profForm(el.dataset.id)},
- profSwitch:function(el){if(el.dataset.id===PID){dlg.close();return}PR.active=el.dataset.id;prSave();location.reload()},
- profDel:function(el){var id=el.dataset.id,p=PR.list.filter(function(x){return x.id===id})[0];if(!p)return;ask('Delete the profile "'+p.name+'" and all its data on this phone? This cannot be undone.','Delete profile').then(function(ok){if(!ok)return;try{localStorage.removeItem(id==='main'?'dgb_data_v1':'dgb_data_v1_'+id);localStorage.removeItem(id==='main'?'dgb_acc_state':'dgb_acc_state_'+id)}catch(e){}idbDel((id==='main'?'':id+':')+'logos');idbDel((id==='main'?'':id+':')+'wall');PR.list=PR.list.filter(function(x){return x.id!==id});if(PR.active===id)PR.active=PR.list[0].id;prSave();if(id===PID)location.reload();else{dlg.close();profDlg()}})},
+ profWipe:function(el){profWipe(el.dataset.id)},
+ profSwitch:function(el){profGo(el.dataset.id)},
+ profDel:function(el){var id=el.dataset.id,p=PR.list.filter(function(x){return x.id===id})[0];if(!p)return;ask('Delete the profile "'+p.name+'" and all its data on this phone? This cannot be undone.','Delete profile').then(function(ok){if(!ok)return;if(id===PID){NOSAVE=true;clearTimeout(snapT)}try{localStorage.removeItem(id==='main'?'dgb_data_v1':'dgb_data_v1_'+id);localStorage.removeItem(id==='main'?'dgb_acc_state':'dgb_acc_state_'+id)}catch(e){}idbDel((id==='main'?'':id+':')+'logos');idbDel((id==='main'?'':id+':')+'wall');PR.list=PR.list.filter(function(x){return x.id!==id});if(PR.active===id)PR.active=PR.list[0].id;prSave();if(id===PID){try{dlg.close()}catch(e){}setTimeout(function(){location.replace(location.href.split('#')[0].split('?')[0])},300)}else{dlg.close();profDlg()}})},
  tone:function(el){S.settings.gtone=el.dataset.v;save();applySettings();render(true)},
  slice:function(el){sliceDlg(+el.dataset.sb,el.dataset.id)},
  drmode:function(el){var d=S.settings.drange=S.settings.drange||{};var v=el.dataset.v;if(v===d.mode&&v!=='custom'){return}d.mode=v;d.off=0;if(v==='custom'&&(!d.from||!d.to)){d.from=dateAdd(today(),-29);d.to=today()}save();drRefresh()},
@@ -4011,6 +4072,7 @@ var ACTS={
  dashRemove:function(el){dashSet(dashList().filter(function(x){return x!==el.dataset.id}))},
  dashAdd:function(el){var d=dashList();d.push(el.dataset.id);dashSet(d)},
  dashReset:function(){dashSet(DASH_DEFAULT.slice())},
+ dashPreset:function(el){var i=+el.dataset.p,old=dashList().slice(),l=presetList(i);if(l.join(',')===old.join(',')){toast('Already using '+DASH_PRESETS[i].n);return}S.settings.safeW=1;S.settings.insW=1;S.settings.rangeW=1;dashSet(l);toast(DASH_PRESETS[i].n+' applied',function(){dashSet(old)});$('#main').scrollTop=0},
  undo:function(){var t=$('#toast');if(t._undo)t._undo();t.hidden=true;t._undo=null}
 };
 document.addEventListener('click',function(e){
