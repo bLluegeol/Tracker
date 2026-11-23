@@ -324,7 +324,7 @@ html[data-look=glass][data-wall=lightgray] .badge.gen{background:rgba(38,49,58,.
 html[data-look=glass][data-wall=lightgray] #lock{background:#E4E6E8}
 html[data-look=glass][data-wall=lightgray] .stat.tk-inc{--tc:#2E7D5B}html[data-look=glass][data-wall=lightgray] .stat.tk-exp{--tc:#B3402F}html[data-look=glass][data-wall=lightgray] .stat.tk-rec{--tc:#2F6F9F}html[data-look=glass][data-wall=lightgray] .stat.tk-owe{--tc:#A8691A}
 html[data-look=glass][data-wall=lightgray] .stat[class*=tk-]{background:color-mix(in srgb,var(--tc) 10%,#fff)}
-html[data-look=glass][data-wall=lightgray] .sw[aria-checked=true]{background:#4A6578}
+html[data-look=glass][data-wall=lightgray] .sw[aria-checked=true]{background:none}html[data-look=glass][data-wall=lightgray] .sw[aria-checked=true]::after{background:#4A6578 radial-gradient(circle at 30px 12px,#fff 9px,transparent 10px)}
 
 .gi{display:inline-grid;place-items:center;border-radius:12px;flex:none}
 .gi .ic{width:55%;height:55%}
@@ -580,7 +580,7 @@ html[data-look=glass][data-tone=light] .badge.gen{background:rgba(38,49,58,.1);c
 html[data-look=glass][data-tone=light] #lock{background:#E4E6E8}
 html[data-look=glass][data-tone=light] .stat.tk-inc{--tc:#2E7D5B}html[data-look=glass][data-tone=light] .stat.tk-exp{--tc:#B3402F}html[data-look=glass][data-tone=light] .stat.tk-rec{--tc:#2F6F9F}html[data-look=glass][data-tone=light] .stat.tk-owe{--tc:#A8691A}
 html[data-look=glass][data-tone=light] .stat[class*=tk-]{background:color-mix(in srgb,var(--tc) 10%,#fff)}
-html[data-look=glass][data-tone=light] .sw[aria-checked=true]{background:#4A6578}
+html[data-look=glass][data-tone=light] .sw[aria-checked=true]{background:none}html[data-look=glass][data-tone=light] .sw[aria-checked=true]::after{background:#4A6578 radial-gradient(circle at 30px 12px,#fff 9px,transparent 10px)}
 html[data-look=glass][data-tone=light] .stat[class*=tk-]{background:var(--card)}
 html[data-look=glass][data-tone=light][data-wall=gray] body::before{background:linear-gradient(165deg,#F1F3F5,#DDE1E6)}
 html[data-look=glass][data-tone=light][data-wall=dusk] body::before{background:radial-gradient(700px 480px at 90% 0%,#FBD9C4,transparent 62%),radial-gradient(700px 520px at 0% 100%,#E6D4EA,transparent 60%),#F5EEE9}
@@ -687,6 +687,7 @@ html[data-look=glass][data-tone=light] .kp button{background:rgba(255,255,255,.7
 <input type="file" id="logosfile" accept="image/*" multiple hidden>
 <input type="file" id="shotfile" accept="image/*" hidden>
 <input type="file" id="csvfile" accept=".csv,text/csv,text/plain" hidden>
+<input type="file" id="lnfile" accept=".json,application/json,text/plain" hidden>
 
 <script>
 (function(){
@@ -1273,6 +1274,7 @@ function pMore(){
   +'<button class="btn wide" data-act="exportCsv">'+ic('down')+'<span>Export transactions (CSV)</span></button>'
   +'<button class="btn wide" data-act="exportXlsx">'+ic('down')+'<span>Export everything (Excel)</span></button>'
   +'<button class="btn wide" data-act="shareBackup">'+ic('up')+'<span>Share backup (Drive, WhatsApp, email)</span></button>'
+  +'<button class="btn wide" data-act="importLoans">'+ic('up')+'<span>Import loans and credits (file)</span></button>'
   +'<button class="btn wide" data-act="stmtPaste">'+ic('receipt')+'<span>Paste a statement</span></button>'
   +'<button class="btn wide" data-act="importCsv">'+ic('up')+'<span>Import bank statement (CSV)</span></button>'
   +'<button class="btn wide danger" data-act="erase">Erase everything</button>'
@@ -2060,6 +2062,43 @@ function csvDate(v,fmt){
 function csvNum(v){v=String(v||'').replace(/[^\d.,\-()]/g,'');if(!v)return 0;var neg=/^\(.*\)$/.test(v)||v.indexOf('-')>-1;v=v.replace(/[()\-]/g,'');
  if(v.indexOf(',')>-1&&v.indexOf('.')>-1)v=v.replace(/,/g,'');else if(/,\d{1,2}$/.test(v))v=v.replace(',','.');else v=v.replace(/,/g,'');
  var n=parseFloat(v);return isNaN(n)?0:Math.round((neg?-n:n)*100)}
+function loanClean(o){
+ function num(v){v=Math.round(Number(v));return isFinite(v)&&v>=0?v:0}
+ function dt(v){return /^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?String(v):''}
+ function str(v,n){return String(v==null?'':v).slice(0,n)}
+ if(!o||typeof o!=='object'||!str(o.who,40).trim())return null;
+ var l={id:uid(),who:str(o.who,40).trim(),dir:o.dir==='owed'?'owed':'owe',amt:num(o.amt),date:dt(o.date)||today(),due:dt(o.due),note:str(o.note,300),pay:[],created:Date.now()};
+ if(o.kind==='bnpl'){l.kind='bnpl';l.ov={};l.items=(Array.isArray(o.items)?o.items:[]).slice(0,200).map(function(it,i){
+   var n=Math.max(1,Math.min(60,parseInt(it.n,10)||1)),f=dt(it.first);if(!f)return null;
+   var x={id:str(it.id,30)||('i'+i+uid()),name:str(it.name,80),total:num(it.total),n:n,first:f,pd:[]};if(num(it.each)>0)x.each=num(it.each);
+   (Array.isArray(it.pd)?it.pd:[]).forEach(function(k){k=parseInt(k,10);if(k>=0&&k<n&&x.pd.indexOf(k)<0)x.pd.push(k)});return x}).filter(Boolean)}
+ else{l.int=num(o.int);if(o.irate>0)l.irate=Number(o.irate)||0;if(o.imon>0)l.imon=parseInt(o.imon,10)||0;
+  if(o.inst&&num(o.inst.amt)>0){l.inst={amt:num(o.inst.amt),freq:({weekly:1,biweekly:1,monthly:1})[o.inst.freq]?o.inst.freq:'monthly',day:Math.min(31,Math.max(1,parseInt(o.inst.day,10)||+((l.due||l.date).slice(8,10))))};if(num(o.inst.first)>0)l.inst.first=num(o.inst.first)}
+  if(num(o.reb)>0)l.reb=num(o.reb)}
+ (Array.isArray(o.pay)?o.pay:[]).slice(0,500).forEach(function(q){
+  var d=dt(q.date);if(!d||!(num(q.amt)>0))return;
+  var p={id:uid(),date:d,amt:num(q.amt)};['int','ip','reb'].forEach(function(k){if(num(q[k])>0)p[k]=num(q[k])});
+  if(q.bill)p.bill=str(q.bill,10);if(Array.isArray(q.parts))p.parts=q.parts.slice(0,100).map(function(z){return [str(z[0],30),parseInt(z[1],10)||0]});
+  l.pay.push(p)});
+ if(l.kind==='bnpl'){var ps=0,pr=[];l.items.forEach(function(it){bnplInst(it).forEach(function(x){if(it.pd.indexOf(x.k)>-1){ps+=x.amt;pr.push([it.id,x.k])}})});
+  if(ps>0)l.pay.push({id:uid(),date:today(),amt:ps,parts:pr});bnplSync(l)}
+ return l}
+function importLoansDlg(txt){
+ var j;try{j=JSON.parse(txt)}catch(e){toast('That file is not a valid loans file');return}
+ if(!j||j.format!=='dige-loans'||!Array.isArray(j.loans)||!j.loans.length){toast('That is not a DiGe loans file');return}
+ var L=j.loans.slice(0,50).map(loanClean).filter(Boolean);if(!L.length){toast('No loans found in that file');return}
+ var dup=L.map(function(l){return S.loans.some(function(x){return x.who===l.who&&x.amt===l.amt&&x.date===l.date})});
+ var chk=Array.isArray(j.check)?j.check.slice(0,20).map(function(x){return String(x).slice(0,300)}):[];
+ openDlg('<form class="dform" novalidate><h2 id="dlg-t">Import loans and credits</h2>'
+  +'<div class="hint">Tick the ones to add. Nothing you already have is changed or removed. After importing, open each one to double-check and edit it.</div>'
+  +L.map(function(l,i){var left=loanLeft(l);return '<label class="chk" style="align-items:flex-start"><input type="checkbox" data-i="'+i+'"'+(dup[i]?'':' checked')+'><span style="width:100%"><b>'+esc(l.who)+'</b> <span class="hint">'+(l.dir==='owe'?'I owe':'Owed to me')+'</span><div class="hint">'+esc(l.note||'')+'</div><div class="split" style="margin:4px 0 0"><span>Total <b class="num">'+esc(money(loanTot(l)))+'</b></span><span>Left <b class="num">'+esc(money(left))+'</b></span><span>'+l.pay.length+' payment'+(l.pay.length===1?'':'s')+' recorded</span></div>'+(dup[i]?'<div class="hint" style="color:var(--err)">Looks like you already have this one.</div>':'')+'</span></label>'}).join('')
+  +(chk.length?'<div class="card" style="padding:12px;box-shadow:none"><b>Please double-check</b><ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:4px">'+chk.map(function(x){return '<li class="hint">'+esc(x)+'</li>'}).join('')+'</ul></div>':'')
+  +'<div class="err" role="alert" id="derr"></div><div class="actions"><button class="btn pri grow" type="submit">Add ticked</button><button class="btn" type="button" data-close>Cancel</button></div></form>',
+ function(f){
+  var n=0,add=[];L.forEach(function(l,i){var c=f.querySelector('[data-i="'+i+'"]');if(c&&c.checked)add.push(l)});
+  if(!add.length){$('#derr').textContent='Nothing is ticked.';return}
+  try{snapPre('Before importing loans')}catch(e){}
+  add.forEach(function(l){S.loans.push(l);n++});save();dlg.close();render(true);toast(n+' loan'+(n===1?'':'s')+' added')})}
 function importCsvDlg(txt){
  var rows=parseCsv(txt);if(rows.length<2){toast('That file has no rows I can read');return}
  var hd=rows[0].map(function(x){return x.trim()}),body=rows.slice(1);
@@ -2471,8 +2510,8 @@ var MENU=[
  ['Plan',[['more','subs','repeat','Subscriptions'],['more','bills','cal','Bills calendar'],['more','mrev','chart','Monthly review'],['more','year','chart','Year in review']]],
  ['Setup',[['more','logos','bank','Brand logos'],['more','recur','repeat','Repeats and templates'],['more','cat','tag','Categories'],['more','look','sun','Appearance'],['more','lock','shield','App lock'],['more','data','shield','Backup and data'],['more','help','flag','How it works']]]
 ];
-var APP_VER='2.9';
-var APP_NEW=['Fixes: switching profiles, the number pad in the paycheck dialog, and the menu closing while you scroll it. New: delete a profile or only its data','Reports now open with Where you stand: net worth, 12-month net worth trend, key numbers, budget used, goals and credits','10 dashboard presets for different needs (Customize on Home, then pick one)','Paycheck plan now fits any schedule: once, twice or three times a month on your own dates, every 2 weeks or weekly, with an amount for each payday','Exit confirmation: going back from Home asks Yes or No before closing the app','Safe to spend, bill Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank, paycheck plan, paste a statement and share backup'];
+var APP_VER='2.11';
+var APP_NEW=['Import loans and credits from a file (Backup and data). Adds to what you have and lets you check each one first','Loans: rebate for paying on time, late fees, balance after each payment and the expected last payment date','Fixed the dark blue boxes behind switches in Appearance on light themes','Fixes: switching profiles, the number pad in the paycheck dialog, and the menu closing while you scroll it. New: delete a profile or only its data','Reports now open with Where you stand: net worth, 12-month net worth trend, key numbers, budget used, goals and credits','10 dashboard presets for different needs (Customize on Home, then pick one)','Paycheck plan now fits any schedule: once, twice or three times a month on your own dates, every 2 weeks or weekly, with an amount for each payday','Exit confirmation: going back from Home asks Yes or No before closing the app','Safe to spend, bill Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank, paycheck plan, paste a statement and share backup'];
 function verCmp(a,b){a=String(a).split('.');b=String(b).split('.');for(var i=0;i<Math.max(a.length,b.length);i++){var x=+a[i]||0,y=+b[i]||0;if(x!==y)return x<y?-1:1}return 0}
 function newList(){return '<ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:4px">'+APP_NEW.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'}
 function updFooter(){
@@ -2677,10 +2716,10 @@ function pHelp(){
   +acc('h_acc',"Accounts","Cash, banks, wallets, cards","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Add each place you keep money. Pick your bank or e-wallet to get its logo and color, or upload your own. Colors can be picked from a color wheel.</div><div><b>Starting balance</b> is what the account held when you began. The balance is that plus your transactions.</div><div><b>Leave out of total balance</b> hides an account from totals (useful for money that is not really yours to spend).</div><div><b>Savings interest:</b> enter the yearly rate and tax and the app estimates monthly interest and adds it automatically. When the bank credits the real amount, use Add interest from the bank and it replaces the estimate.</div><div><b>Credit and SPayLater accounts</b> count as money you owe, with an optional limit, due day, statement cut-off day, interest rate and minimum payment.</div><div><b>Reconcile:</b> open an account and tap Reconcile with bank. Type the balance your bank shows. If it differs, one tap adds an adjustment that does not count in spending reports. You can undo it.</div></div>",false)
   +acc('h_bud',"Budgets and reports","Limits and charts","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Budgets:</b> set a monthly limit per category. Bars turn amber near the limit and red when over. Unused budget does not carry over.</div><div><b>Reports:</b> pick a period at the top. You get the net for the period, then <b>Where you stand</b> (net worth, a 12-month net worth trend, key numbers like spending per day, budget used, goals and credits), then spending by category, balance trend, cash flow, forecast, weekday and place breakdowns.</div><div><b>Monthly review</b> and <b>Year in review</b> summarize your month or year: totals, biggest categories, best and worst months.</div><div><b>Categories</b> can be renamed, added and grouped under a parent. Reports roll sub-categories up into their parent.</div></div>",false)
   +acc('h_goals',"Goals and savings","Save for something","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Create a goal with a target, an optional deadline and an optional starting amount. Add or withdraw money, and choose an account so your balance stays accurate.</div><div><b>Auto-save:</b> set an amount and frequency and the goal adds it for you.</div><div><b>Deadline</b> goals show how much to save per week or month to finish on time.</div><div><b>Interest:</b> if the goal money sits in a bank, enter the yearly rate to see estimated earnings.</div><div>Goals are good for sinking funds too, such as annual fees, holidays or a car repair fund.</div></div>",false)
-  +acc('h_credit',"Credit cards, loans and utang","What you owe and are owed","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Credit cards</b> show what you owe, limit used and the due date. If you set a cut-off day, you also see the closed statement, what is still to pay, the pay-by date and what goes on the next statement.</div><div><b>Loans:</b> choose I owe or Owed to me. Enter the amount, who, the date (you can back-date old ones) and optionally interest. You can enter an interest rate and months, or the total interest directly.</div><div><b>Installments:</b> set the payment amount, how often, and a different first payment if needed. The app works out how many payments are left.</div><div><b>Mark paid</b> records the next payment with today's date and takes it from your chosen account. It can be undone.</div><div><b>Utang owed to you:</b> partial payments are fine. Each one reduces what is left and the history keeps every payment.</div><div><b>SPayLater and similar:</b> add the account, then add each purchase with its number of installments. The app groups them into monthly bills and you mark each bill paid.</div></div>",false)
+  +acc('h_credit',"Credit cards, loans and utang","What you owe and are owed","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Credit cards</b> show what you owe, limit used and the due date. If you set a cut-off day, you also see the closed statement, what is still to pay, the pay-by date and what goes on the next statement.</div><div><b>Loans:</b> choose I owe or Owed to me. Enter the amount, who, the date (you can back-date old ones) and optionally interest. You can enter an interest rate and months, or the total interest directly.</div><div><b>Installments:</b> set the payment amount, how often, and a different first payment if needed. The app works out how many payments are left.</div><div><b>Mark paid</b> records the next payment with today's date and takes it from your chosen account. It can be undone.</div><div><b>Rebates and penalties:</b> if your lender gives a rebate for paying on time (for example 600 off each 5,907 installment), set it in the loan under Rebate for paying on time. Pay on or before the due date and the app takes the rebate off what you pay, while the full installment still reduces the balance. Pay late and there is no rebate. Enter any late fee or penalty in the fee box; it is not counted toward the balance. Each payment in the history shows the balance after it, like a payment book.</div><div><b>Utang owed to you:</b> partial payments are fine. Each one reduces what is left and the history keeps every payment.</div><div><b>SPayLater and similar:</b> add the account, then add each purchase with its number of installments. The app groups them into monthly bills and you mark each bill paid.</div></div>",false)
   +acc('h_rep',"Subscriptions, repeats and bills","Things that come back","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Repeats</b> create transactions automatically (rent, salary, allowances) weekly, every 2 weeks or monthly.</div><div><b>Subscriptions</b> are repeating costs. You can set one to ask first (it waits for you to confirm instead of posting by itself), pause it, or skip just the next charge.</div><div><b>Bills calendar</b> lists everything due by date: card due dates, loan payments, subscriptions and goal deadlines. Items due soon have a Paid button.</div><div><b>Notifications:</b> in Backup and data you can turn on due-date alerts. They appear when you open the app, once a day. The app cannot wake your phone by itself because it has no server.</div></div>",false)
   +acc('h_plan',"Planning tools","Look ahead","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Time deposits:</b> record amount, rate, tax, term and start date. The app shows the maturity date and the interest you will get, and counts the principal in your net worth. When it matures, Mark paid out adds the money and interest to the account you choose.</div><div><b>Debt planner:</b> lists your cards and loans you owe. Choose highest interest first (cheapest) or smallest first (fastest wins), set how much you can pay monthly and see your debt-free month and interest. For cards, set the interest rate and minimum in the card's settings for better numbers.</div><div><b>Net worth history:</b> a 12-month chart of your account balances after cards, calculated from your transactions. It does not include loans.</div><div><b>Paycheck plan:</b> choose how you are paid: once, twice or three times a month on the days your company uses (for example the 15th and 30th, each with its own amount), every 2 weeks or every week. For the current pay period it shows bills due, money to set aside for goals with deadlines, and what is left to spend per day, and lists your next paydays.</div><div><b>Trips:</b> group expenses under a trip to see its total cost.</div></div>",false)
-  +acc('h_data',"Backup and data","Keep your data safe","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Your data lives only in this browser on this phone. Clearing browser data or losing the phone loses it, so back up regularly.</div><div><b>Export backup</b> saves a file. <b>Share backup</b> sends it straight to Google Drive, WhatsApp or email. Keep a copy somewhere other than the phone.</div><div><b>Restore</b> loads a backup file. The app also keeps automatic snapshots on the device as a safety net.</div><div><b>Backup reminders</b> nudge you weekly, every 2 weeks or monthly.</div><div><b>Excel export</b> and <b>CSV import</b> work with spreadsheets and bank files. <b>Paste a statement</b> reads lines copied from GCash, Maya or a bank, lets you tick which to add, and skips ones already in your log.</div><div><b>Profiles:</b> keep separate sets of data (for example personal and business). Open Profiles from More or the menu, tap a profile to switch, and tap the pencil to rename it, change its avatar, <b>delete only its data</b> (the profile stays, empty) or <b>delete the whole profile</b>.</div></div>",false)
+  +acc('h_data',"Backup and data","Keep your data safe","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Your data lives only in this browser on this phone. Clearing browser data or losing the phone loses it, so back up regularly.</div><div><b>Export backup</b> saves a file. <b>Share backup</b> sends it straight to Google Drive, WhatsApp or email. Keep a copy somewhere other than the phone.</div><div><b>Restore</b> loads a backup file. The app also keeps automatic snapshots on the device as a safety net.</div><div><b>Backup reminders</b> nudge you weekly, every 2 weeks or monthly.</div><div><b>Excel export</b> and <b>CSV import</b> work with spreadsheets and bank files. <b>Paste a statement</b> reads lines copied from GCash, Maya or a bank, lets you tick which to add, and skips ones already in your log.</div><div><b>Import loans and credits:</b> in Backup and data, choose Import loans and credits (file) to add loans, utang and SPayLater accounts from a prepared .json file. You see a list first, tick the ones to add, and nothing you already have is changed. Open each one afterwards to double-check and edit it.</div><div><b>Profiles:</b> keep separate sets of data (for example personal and business). Open Profiles from More or the menu, tap a profile to switch, and tap the pencil to rename it, change its avatar, <b>delete only its data</b> (the profile stays, empty) or <b>delete the whole profile</b>.</div></div>",false)
   +acc('h_look',"Look, lock and privacy","Make it yours","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Appearance:</b> Classic or Glass look, light, dark or automatic, compact spacing and wallpapers.</div><div><b>App lock:</b> protect the app with a PIN. Fingerprint unlock works only when the app is installed on the home screen and opened over https.</div><div><b>Privacy:</b> nothing is sent anywhere. There is no tracking and no account. The only network use is loading the app itself the first time.</div><div><b>Brand logos:</b> set your own logos for banks and wallets.</div><div><b>Updates:</b> the menu shows your version number at the bottom. Tap Check for update and, if a newer version is online, the app refreshes itself. Your data is not touched. You need internet for this.</div></div>",false)
   +'<div class="hint" style="text-align:center">Version 2026 · works offline · your data stays on this phone</div>';
 }
@@ -2923,6 +2962,7 @@ function debtBudDlg(){
 /* ================= credits: cards + loans / utang ================= */
 function loanById(id){return S.loans.filter(function(l){return l.id===id})[0]}
 function loanPaid(l){return l.pay.reduce(function(s,p){return s+p.amt},0)}
+function loanReb(l,d){return(l.reb>0&&l.due&&d<=l.due)?l.reb:0}
 function loanQuick(l){
  if(l.kind==='bnpl'){bnplQuick(l);return}
  var left=loanLeft(l);if(!(left>0))return;var owe=l.dir==='owe',tot=loanPay(l),ip=0;
@@ -2930,10 +2970,10 @@ function loanQuick(l){
  if(l.int>0){var ipaid=l.pay.reduce(function(q,y){return q+(y.ip||0)},0),irem=Math.max(0,l.int-ipaid);ip=tot>=left?irem:Math.min(irem,Math.round(tot*l.int/loanTot(l)))}
  var acc=accById(l.pacc)?l.pacc:(accById(S.settings.lastAcc)?S.settings.lastAcc:''),dt=today();
  var snap={pay:l.pay.slice(),due:l.due};
- var p={id:uid(),date:dt,amt:tot};if(ip>0)p.ip=ip;
+ var rb=Math.min(loanReb(l,dt),Math.max(0,tot-ip-1)),p={id:uid(),date:dt,amt:tot};if(ip>0)p.ip=ip;if(rb>0)p.reb=rb;
  if(acc){
   var cid=null;if(owe){var lp=S.cats.filter(function(c){return c.name==='Loan payments'&&c.parent})[0];cid=lp?lp.id:null}
-  var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:tot-ip,acc:acc,to:null,cat:cid,date:dt,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;S.tx.push(x);p.tx=x.id;
+  var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:tot-ip-rb,acc:acc,to:null,cat:cid,date:dt,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;if(x.amt>0){S.tx.push(x);p.tx=x.id}
   if(ip>0){var xi={id:uid(),ts:Date.now()+1,type:owe?'exp':'inc',amt:ip,acc:acc,to:null,cat:ensureCat(owe?'Interest and fees':'Interest income',owe?'exp':'inc'),date:dt,note:(owe?'Interest: ':'Interest from ')+l.who,trip:null,int:true};S.tx.push(xi);p.itx=xi.id}
  }
  var need=(l.inst&&l.inst.first>0&&!l.pay.length)?l.inst.first:(l.inst?l.inst.amt:0);
@@ -2941,7 +2981,7 @@ function loanQuick(l){
  if(l.inst&&l.inst.amt>0&&l.due&&tot>=need*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
  if(loanLeft(l)===0)l.due='';
  save();render(true);
- toast((owe?'Paid ':'Received ')+money(tot)+' today ('+fullDate(dt)+')',function(){l.pay=snap.pay;l.due=snap.due;S.tx=S.tx.filter(function(t){return t.id!==p.tx&&t.id!==p.itx});save();render(true)});
+ toast((owe?'Paid ':'Received ')+money(tot-rb)+(rb>0?' after '+money(rb)+' rebate':'')+' today ('+fullDate(dt)+')',function(){l.pay=snap.pay;l.due=snap.due;S.tx=S.tx.filter(function(t){return t.id!==p.tx&&t.id!==p.itx});save();render(true)});
 }
 function loanDate(l){return l.date||(l.created?isoDate(new Date(l.created)):today())}
 function loanTot(l){return l.amt+(l.int||0)}
@@ -3127,41 +3167,47 @@ function pCredits(){
  return h+'</section>';
 }
 function loanDlg(id){
- var l=loanById(id);if(!l)return;if(l.kind==='bnpl'){bnplDlg(id);return}var left=loanLeft(l),owe=l.dir==='owe';
- var hist=l.pay.slice().sort(function(a,b){return a.date<b.date?1:-1}).map(function(p){return '<div class="row" style="min-height:44px"><span class="grow"><div class="t num">'+esc(money(p.amt))+(p.int?' + '+esc(money(p.int))+' interest':'')+(p.ip?' (incl. '+esc(money(p.ip))+' interest)':'')+'</div><div class="s">'+esc(dayLabel(p.date))+(p.tx?' · in your accounts':'')+'</div></span><button type="button" class="btn ghost icon" data-act="delPay" data-id="'+l.id+'" data-p="'+p.id+'" aria-label="Delete payment">'+ic('x')+'</button></div>'}).join('');
+ var l=loanById(id);if(!l)return;if(l.kind==='bnpl'){bnplDlg(id);return}var left=loanLeft(l),owe=l.dir==='owe',run={},rc=0,rebSum=0,feeSum=0;
+ l.pay.slice().sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0}).forEach(function(q){rc+=q.amt;run[q.id]=loanTot(l)-rc;rebSum+=q.reb||0;feeSum+=q.int||0});
+ var hist=l.pay.slice().sort(function(a,b){return a.date<b.date?1:-1}).map(function(p){return '<div class="row" style="min-height:44px"><span class="grow"><div class="t num">'+esc(money(p.amt))+(p.int?' + '+esc(money(p.int))+' fee':'')+(p.ip?' (incl. '+esc(money(p.ip))+' interest)':'')+(p.reb?' · rebate '+esc(money(p.reb)):'')+'</div><div class="s">'+esc(dayLabel(p.date))+' · balance '+esc(money(run[p.id]))+(p.tx?' · in your accounts':'')+'</div></span><button type="button" class="btn ghost icon" data-act="delPay" data-id="'+l.id+'" data-p="'+p.id+'" aria-label="Delete payment">'+ic('x')+'</button></div>'}).join('');
  openDlg('<form class="dform" novalidate><h2 id="dlg-t">'+esc(l.who)+'</h2>'
   +'<div class="hint">'+(owe?'You owe':'Owes you')+' · '+esc(money(loanTot(l)))+' total · since '+esc(fullDate(loanDate(l)))+(l.int>0?' (incl. '+esc(money(l.int))+' interest)':'')+(l.due?' · '+(l.inst&&l.inst.amt>0?'next payment ':'due ')+esc(fullDate(l.due)):'')+'</div>'
-  +(l.inst&&l.inst.amt>0&&left>0?'<div class="hint">Fixed payment '+esc(money(l.inst.amt))+' '+esc(({weekly:'every week',biweekly:'every 2 weeks',monthly:'every month'})[l.inst.freq]||'')+' · about '+loanLeftN(l)+' payment'+(loanLeftN(l)===1?'':'s')+' left</div>':'')
+  +(l.inst&&l.inst.amt>0&&left>0?'<div class="hint">Fixed payment '+esc(money(l.inst.amt))+' '+esc(({weekly:'every week',biweekly:'every 2 weeks',monthly:'every month'})[l.inst.freq]||'')+' · about '+loanLeftN(l)+' payment'+(loanLeftN(l)===1?'':'s')+' left'+(function(){var n=loanLeftN(l),d=l.due,g=0;if(!(n>1&&d))return '';for(var k=1;k<n&&g++<400;k++)d=advDate(d,l.inst.freq,l.inst.day);return ' · last one around '+esc(fullDate(d))})()+'</div>':'')
+  +(rebSum>0||feeSum>0?'<div class="hint">'+(rebSum>0?'Rebates earned <b class="num">'+esc(money(rebSum))+'</b>':'')+(rebSum>0&&feeSum>0?' · ':'')+(feeSum>0?'Fees and penalties paid <b class="num">'+esc(money(feeSum))+'</b>':'')+'</div>':'')
   +'<div class="big num" style="font-size:28px">'+esc(money(left))+' <span class="small muted" style="font-weight:600">left</span></div>'
   +(l.note?'<div class="hint">'+esc(l.note)+'</div>':'')
   +(hist?'<div class="card" style="padding:0 12px">'+hist+'</div>':'')
-  +(left>0?'<label class="field"><span>'+(owe?'Payment':'Payment received')+' ('+esc(S.settings.cur)+')</span><input class="amount" name="amt" inputmode="decimal" value="'+(loanPay(l)/100).toFixed(2)+'"></label>'
-   +(l.int>0?'<div class="hint">The interest is already in the total, so enter the whole payment. The interest part is recorded as '+(owe?'spending':'income')+' for you.</div>':'<label class="field"><span>Interest or fees included ('+esc(S.settings.cur)+', optional)</span><input name="int" inputmode="decimal" placeholder="0.00"></label><div class="hint">Only the rest reduces what '+(owe?'you owe':'is owed')+'. The interest is recorded as '+(owe?'spending':'income')+'.</div>')
+  +(left>0?'<label class="field"><span>'+(owe?'Amount you pay':'Amount you receive')+' ('+esc(S.settings.cur)+')</span><input class="amount" name="amt" inputmode="decimal" value="'+(Math.max(0,loanPay(l)-loanReb(l,today()))/100).toFixed(2)+'"></label>'
+   +'<label class="field"><span>Rebate or discount ('+esc(S.settings.cur)+', optional)</span><input name="reb" inputmode="decimal" placeholder="0.00" value="'+(loanReb(l,today())?(loanReb(l,today())/100).toFixed(2):'')+'"></label><div class="hint">A rebate is not paid in cash, but it still counts toward the balance. Example: a 5,907 installment with a 600 rebate means you pay 5,307.</div>'
+   +(l.int>0?'<div class="hint">The interest is already in the total, so enter the whole payment. The interest part is recorded as '+(owe?'spending':'income')+' for you.</div>':'<label class="field"><span>Late fee, penalty or interest included ('+esc(S.settings.cur)+', optional)</span><input name="int" inputmode="decimal" placeholder="0.00"></label><div class="hint">Only the rest reduces what '+(owe?'you owe':'is owed')+'. The interest is recorded as '+(owe?'spending':'income')+'.</div>')
    +'<label class="field"><span>Date</span><input type="date" name="date" value="'+today()+'"></label>'
    +'<label class="field"><span>'+(owe?'Paid from':'Received in')+'</span><select name="acc"><option value="">Do not record in my accounts</option>'+accOpts(accById(S.settings.lastAcc)?S.settings.lastAcc:S.accounts[0]&&S.accounts[0].id)+'</select></label>':'<div><span class="pill ok">Settled</span></div>')
   +'<div class="err" role="alert" id="derr"></div>'
   +'<div class="actions">'+(left>0?'<button class="btn pri grow" type="submit">Record payment</button>':'')+'<button class="btn" type="button" data-act="editLoan" data-id="'+l.id+'">Edit loan</button><button class="btn ghost" type="button" data-close>Close</button></div></form>',
  function(f){
-  var tot=parseAmt(f.amt.value),it=f.int?(parseAmt(f.int.value)||0):0;if(!(tot>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
-  if(it>=tot){$('#derr').textContent='Interest must be less than the payment.';return}
-  var a=tot-it,ip=0;
-  if(l.int>0){var ipaid=l.pay.reduce(function(q,y){return q+(y.ip||0)},0),irem=Math.max(0,l.int-ipaid);ip=tot>=left?irem:Math.min(irem,Math.round(tot*l.int/loanTot(l)));a=tot}
+  var tot=parseAmt(f.amt.value),rb=f.reb?(parseAmt(f.reb.value)||0):0,it=f.int?(parseAmt(f.int.value)||0):0;if(!(tot>0)){$('#derr').textContent='Enter an amount greater than zero.';return}
+  if(rb<0){$('#derr').textContent='Rebate must be zero or more.';return}
+  if(it>=tot+rb){$('#derr').textContent='The fee or interest must be less than the payment.';return}
+  var T=tot+rb,a=T-it,ip=0;
+  if(l.int>0){var ipaid=l.pay.reduce(function(q,y){return q+(y.ip||0)},0),irem=Math.max(0,l.int-ipaid);ip=T>=left?irem:Math.min(irem,Math.round(T*l.int/loanTot(l)));a=T}
   if(a>left){$('#derr').textContent='The principal is more than what is left ('+money(left)+').';return}
   if(!f.date.value){$('#derr').textContent='Pick a date.';return}
-  var p={id:uid(),date:f.date.value,amt:a};if(it>0)p.int=it;if(ip>0)p.ip=ip;
+  var p={id:uid(),date:f.date.value,amt:a};if(it>0)p.int=it;if(ip>0)p.ip=ip;if(rb>0)p.reb=rb;
   if(f.acc.value){
    var cid=null;if(owe){var lp=S.cats.filter(function(c){return c.name==='Loan payments'&&c.parent})[0];cid=lp?lp.id:null}
-   var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:a-ip,acc:f.acc.value,to:null,cat:cid,date:f.date.value,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;S.settings.lastAcc=x.acc;
-   S.tx.push(x);p.tx=x.id;
+   var x={id:uid(),ts:Date.now(),type:owe?'exp':'inc',amt:a-ip-rb,acc:f.acc.value,to:null,cat:cid,date:f.date.value,note:(owe?'Loan payment: ':'Repayment from ')+l.who};x.ln=true;S.settings.lastAcc=x.acc;
+   if(x.amt>0){S.tx.push(x);p.tx=x.id}
    if(it+ip>0){var xi={id:uid(),ts:Date.now()+1,type:owe?'exp':'inc',amt:it+ip,acc:f.acc.value,to:null,cat:ensureCat(owe?'Interest and fees':'Interest income',owe?'exp':'inc'),date:f.date.value,note:(owe?'Interest: ':'Interest from ')+l.who,trip:null,int:true};S.tx.push(xi);p.itx=xi.id}
   }
   if(f.acc.value)l.pacc=f.acc.value;
   var need=(l.inst&&l.inst.first>0&&!l.pay.length)?l.inst.first:(l.inst?l.inst.amt:0);
   l.pay.push(p);
-  if(l.inst&&l.inst.amt>0&&l.due&&tot>=need*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
+  if(l.inst&&l.inst.amt>0&&l.due&&T>=need*0.95)l.due=advDate(l.due,l.inst.freq,l.inst.day);
   if(loanLeft(l)===0)l.due='';
   save();dlg.close();render(true);toast('Payment recorded');
  });
+ var pf=$('form',dlg);if(pf&&pf.reb&&pf.date&&pf.amt&&l.reb>0&&l.due){var tch={};pf.amt.addEventListener('input',function(){tch.a=1});pf.reb.addEventListener('input',function(){tch.r=1});
+  pf.date.addEventListener('change',function(){var rr=loanReb(l,pf.date.value);if(!tch.r)pf.reb.value=rr?(rr/100).toFixed(2):'';if(!tch.a)pf.amt.value=(Math.max(0,loanPay(l)-rr)/100).toFixed(2)})}
 }
 function lnInt(f,a){
  var t=f.itot.value.trim(),r=parseFloat(String(f.irate.value).replace(',','.'))||0,mo=parseInt(f.imon.value,10)||0,ic=parseInt(f.icnt.value,10)||0,fq=f.ifreq.value;
@@ -3183,6 +3229,7 @@ function loanEditDlg(id){
   +'<label class="field"><span>Repeats</span><select name="ifreq">'+Object.keys(FREQ).map(function(k){return '<option value="'+k+'"'+((l&&l.inst?l.inst.freq:'monthly')===k?' selected':'')+'>'+FREQ[k]+'</option>'}).join('')+'</select></label>'
   +'<label class="field"><span>Or number of payments (optional)</span><input name="icnt" inputmode="numeric" maxlength="3" placeholder="e.g. 6"></label>'
   +'<label class="field"><span>First payment is different ('+esc(S.settings.cur)+', optional)</span><input name="ifirst" inputmode="decimal" placeholder="0.00" value="'+(l&&l.inst&&l.inst.first?(l.inst.first/100).toFixed(2):'')+'"></label>'
+  +'<label class="field"><span>Rebate for paying on time ('+esc(S.settings.cur)+', optional)</span><input name="reb" inputmode="decimal" placeholder="0.00" value="'+(l&&l.reb?(l.reb/100).toFixed(2):'')+'"></label><div class="hint">If you pay on or before the due date you pay this much less, but the full installment still counts. Same as the rebate column in a payment book.</div>'
   +'<div class="card" style="padding:12px;display:grid;gap:8px"><b>Interest (optional)</b>'
   +'<label class="field" style="margin:0"><span>Interest rate (% per month, flat)</span><input name="irate" inputmode="decimal" placeholder="e.g. 3.5" value="'+(l&&l.irate?l.irate:'')+'"></label>'
   +'<label class="field" style="margin:0"><span>For how many months</span><input name="imon" inputmode="numeric" maxlength="3" placeholder="e.g. 3" value="'+(l&&l.imon?l.imon:'')+'"></label>'
@@ -3205,6 +3252,7 @@ function loanEditDlg(id){
   var iv=lnInt(f,a);if(iv.bad){$('#derr').textContent='Interest must be a number, zero or more.';return}
   if(l&&iv.int<(l.pay||[]).reduce(function(q,y){return q+(y.ip||0)},0)){$('#derr').textContent='Interest cannot be less than the interest already paid.';return}
   o.int=iv.int;o.irate=iv.rate||0;o.imon=iv.mon||0;
+  var rbv=f.reb.value.trim()===''?0:parseAmt(f.reb.value);if(isNaN(rbv)||rbv<0){$('#derr').textContent='Rebate must be zero or more.';return}o.reb=rbv;
   var fp=f.ifirst.value.trim()===''?0:parseAmt(f.ifirst.value);
   if(isNaN(fp)||fp<0){$('#derr').textContent='First payment must be zero or more.';return}
   if(ia>0&&ic2>0){$('#derr').textContent='Use either a fixed payment or a number of payments, not both. Clear one of them.';return}
@@ -4051,7 +4099,7 @@ var ACTS={
  delContrib:function(el){var g=goalById(el.dataset.id),rest=g.log.filter(function(x){return x.id!==el.dataset.e}),sum=rest.reduce(function(a,x){return a+x.amt},0);
   if(sum<0){$('#derr').textContent='Removing this would leave a negative balance.';return}var gone=g.log.filter(function(x){return x.id===el.dataset.e})[0];if(gone&&gone.tx)S.tx=S.tx.filter(function(t){return t.id!==gone.tx});g.log=rest;save();dlg.close();render(true);toast('Entry deleted')},
  quickPaid:function(el){var l=loanById(el.dataset.id);if(l)loanQuick(l)},
- shareBackup:function(){shareBackup()},appUpdate:function(){checkUpdate()},stmtPaste:function(){stmtPasteDlg()},payDlg:function(){payDlg()},payOff:function(){S.settings.pay=null;save();dlg.close();render(true)},recon:function(el){reconDlg(el.dataset.id)},goNw:function(){V.tab='more';V.sub='nw';render();$('#main').scrollTop=0},newTd:function(){tdDlg()},editTd:function(el){tdDlg(el.dataset.id)},tdMature:function(el){tdMature(el.dataset.id)},tdUndo:function(el){tdUndo(el.dataset.id)},
+ shareBackup:function(){shareBackup()},importLoans:function(){$('#lnfile').click()},appUpdate:function(){checkUpdate()},stmtPaste:function(){stmtPasteDlg()},payDlg:function(){payDlg()},payOff:function(){S.settings.pay=null;save();dlg.close();render(true)},recon:function(el){reconDlg(el.dataset.id)},goNw:function(){V.tab='more';V.sub='nw';render();$('#main').scrollTop=0},newTd:function(){tdDlg()},editTd:function(el){tdDlg(el.dataset.id)},tdMature:function(el){tdMature(el.dataset.id)},tdUndo:function(el){tdUndo(el.dataset.id)},
  delTd:function(el){var id=el.dataset.id;ask('Delete this time deposit?').then(function(ok){if(!ok)return;S.td=S.td.filter(function(x){return x.id!==id});save();dlg.close();render(true);toast('Deleted')})},
  debtM:function(el){S.settings.debtM=el.dataset.m;save();render(true)},debtBud:function(){debtBudDlg()},notifToggle:function(){
   if(S.settings.notif){S.settings.notif=false;save();render(true);return}
@@ -4093,6 +4141,7 @@ document.addEventListener('change',function(e){
 /* ---------- start ---------- */
 $('#wallfile').addEventListener('change',function(e){var f=e.target.files[0];e.target.value='';if(!f)return;
  shrink(f,1600,.72).then(function(u){return idbPut(PFX+'wall',u)}).then(function(){S.settings.wall='photo';S.settings.look='glass';save();applySettings();render(true);toast('Background set')}).catch(function(){toast('That image could not be used')})});
+$('#lnfile').addEventListener('change',function(e){var f=e.target.files[0];e.target.value='';if(!f)return;var r=new FileReader();r.onload=function(){importLoansDlg(String(r.result))};r.readAsText(f)});
 $('#csvfile').addEventListener('change',function(e){var f=e.target.files[0];e.target.value='';if(!f)return;var r=new FileReader();r.onload=function(){importCsvDlg(String(r.result))};r.readAsText(f)});
 PAL_EXTRA.push({t:'Glass tone: light',g:'Actions',run:function(){ACTS.tone({dataset:{v:'light'}})}});
 PAL_EXTRA.push({t:'Glass tone: dark',g:'Actions',run:function(){ACTS.tone({dataset:{v:'dark'}})}});
