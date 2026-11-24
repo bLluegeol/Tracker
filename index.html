@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-x40k/xuqg9zBz4H8FFvWhQ+/q5wfgBmZ05idUrFHmNE='; style-src 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://www.googleapis.com; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="color-scheme" content="light dark"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="color-scheme" content="light dark">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="favicon.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#EDF0F2">
 <title>DiGe Budget</title>
 <style>
@@ -389,7 +390,8 @@ html[data-look=glass] .gp{background:rgba(255,255,255,.07);border-color:rgba(255
 /* ---------- persistent sidebar (glass, wide screens) ---------- */
 #side{display:none}
 #side .sl{display:flex;align-items:center;gap:10px;padding:4px 8px 14px}
-#side .lg{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;background:var(--ink);color:var(--bg);font:700 15px Georgia,serif}
+#side .lg{display:grid;place-items:center;width:32px;height:32px;border-radius:9px;background:transparent;color:var(--bg);font:700 15px Georgia,serif;overflow:hidden;flex:none}
+#side .lg img{width:100%;height:100%;object-fit:cover;display:block}
 #side .sf{font:400 22px Georgia,"Times New Roman",serif;letter-spacing:.01em}
 
 /* ================= GLASS LOOK ================= */
@@ -598,6 +600,92 @@ html[data-look=glass][data-tone=light] .sh,html[data-look=glass][data-tone=light
 html[data-look=glass][data-tone=light] #top h1,html[data-look=glass][data-tone=light] #drawer .dh b{color:var(--ink)}
 html[data-look=glass][data-tone=light] .neg{color:var(--err);text-shadow:none}
 html[data-look=glass][data-tone=light] .kp button{background:rgba(255,255,255,.7)}
+/* ================= DESKTOP LAYOUT (mouse + wide screen, or chosen in Appearance) ================= */
+html.desk{--maxw:1480px}
+html.desk #app{grid-template-columns:268px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}
+html.desk #side{display:flex;flex-direction:column;grid-column:1;grid-row:1/3;padding:18px 12px 12px;gap:2px;overflow-y:auto;border-right:1px solid var(--line);background:var(--card);min-width:0}
+html.desk #top,html.desk #main{grid-column:2}
+html.desk #bnav,html.desk #menu{display:none}
+html.desk #top{padding-left:var(--sp-4);padding-right:var(--sp-4);min-height:64px}
+html.desk #top h1{font-size:22px}
+html.desk #srch{width:min(380px,32vw);justify-content:flex-start;gap:8px;padding:0 12px}
+html.desk #srch .sk,html.desk #srch kbd{display:inline}
+html.desk #srch .sk{flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis}
+html.desk #main .wrap{max-width:var(--maxw);padding:var(--sp-4) 32px 56px;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:20px;align-items:stretch;grid-auto-flow:row dense}
+html.desk #main .wrap>:is(.drstrip,.stats,.stats4,.chips,.mnav,.qrow,.sh,.revtools,.hint,.field,.span2,button.btn,.pg,div:not([class]),section:not(.card)){grid-column:1/-1}
+html.desk #main .wrap>.btn,html.desk #main .wrap>button.btn{justify-self:start}
+html.desk #side .dg{margin-top:14px}
+html.desk #side .dnav{min-height:38px}
+html.desk #side .dnav{margin:0 0 1px}
+html.desk [data-kptoggle]{display:none}
+html.desk #main .wrap.listy>.card{grid-column:1/-1}
+html.desk #main .wrap.listy>div:not([class]){display:grid;grid-template-columns:repeat(auto-fill,minmax(440px,1fr));gap:16px;align-items:start}
+html.desk #main .wrap.one{max-width:var(--maxw);grid-template-columns:minmax(0,1fr)}
+html.desk #main .wrap>.full{grid-column:1/-1}
+html.desk #main .tiles{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+html.desk #main .bgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+html.desk #main .bgrid>:not(.btn){grid-column:1/-1}
+html.desk dialog{width:min(580px,calc(100vw - 64px));padding:var(--sp-4)}
+html.desk #toast{bottom:var(--sp-4)}
+html.desk .mtile:hover,html.desk .tile:hover{border-color:var(--acc)}
+html.desk .row:hover{background:var(--hl)}
+html.desk ::-webkit-scrollbar{width:11px;height:11px}
+html.desk ::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px;border:3px solid transparent;background-clip:content-box}
+html.desk ::-webkit-scrollbar-thumb:hover{background:var(--mut);background-clip:content-box;border:3px solid transparent}
+#side .sl{padding:4px 8px 14px}
+#side .sfoot{margin-top:auto;padding:12px 8px 0;border-top:1px solid var(--line);display:grid;gap:8px;font-size:12px;color:var(--mut)}
+#side .sfoot .btn{min-height:36px;justify-content:flex-start;font-size:13px}
+#side .sfoot kbd{margin-left:auto}
+kbd.k{font:600 11px ui-monospace,Menlo,Consolas,monospace;padding:2px 6px;border:1px solid var(--line);border-radius:6px;background:var(--hl);color:var(--ink)}
+.kgrid{display:grid;grid-template-columns:auto 1fr;gap:8px 14px;align-items:center}
+
+
+/* ================= SKY LOOK (indigo header, white rounded cards, floating pill bar) ================= */
+html[data-look=sky]{--bg:#F3F4FB;--card:#FFFFFF;--ink:#1B2147;--mut:#646B90;--line:#E4E7F4;--acc:#4452C4;--acc2:#9AA5E3;--acc-ink:#2F3C9E;--acc-fill:#2B3A8F;--hl:#EEF0FA;--sel:#E6E9FA;--row-alt:#F7F8FD;--ok:#3E9B73;--ok-ink:#2A7A57;--okbg:#E2F3EA;--warn:#85560F;--warnbg:#FBF1DC;--warnacc:#D49A3A;--err:#BF3A2C;--errbg:#FBE8E5;--shadow:rgba(43,58,143,.2);--shadow-sm:rgba(43,58,143,.09);--overlay:rgba(20,26,66,.5);--r-2:14px;--r-3:20px;--focus:2px solid #4452C4;color-scheme:light}
+html[data-look=sky][data-dk]{--bg:#11152E;--card:#1A2046;--ink:#EEF0FF;--mut:#A4ABD8;--line:#2A3262;--acc:#8E9BF2;--acc2:#6471D6;--acc-ink:#AAB4FF;--acc-fill:#4B5BD6;--hl:#232A58;--sel:#29316B;--row-alt:#1E2550;--ok:#6CCB9F;--ok-ink:#7FD9AE;--okbg:#1E3A33;--warn:#F0C27A;--warnbg:#3A3326;--warnacc:#E0AE5C;--err:#FF9A8E;--errbg:#442A31;--shadow:rgba(4,6,24,.6);--shadow-sm:rgba(4,6,24,.35);--overlay:rgba(6,8,28,.68);--focus:2px solid #AAB4FF;color-scheme:dark}
+html[data-look=sky] body{background:var(--bg)}
+html[data-look=sky] #top{background:linear-gradient(135deg,#2B3A8F 0%,#4452C4 100%);color:#fff;border-bottom:0;border-radius:0 0 26px 26px;box-shadow:0 8px 24px var(--shadow);min-height:64px;position:relative;z-index:4}
+html[data-look=sky][data-dk] #top{background:linear-gradient(135deg,#1E2670 0%,#323FAE 100%)}
+html[data-look=sky] #top h1{color:#fff;text-align:center;font-weight:700}
+html[data-look=sky] #top .btn.ghost,html[data-look=sky] #top .btn.icon{background:rgba(255,255,255,.16);border-color:transparent;color:#fff;border-radius:50%}
+html[data-look=sky] #top #srch{border-radius:var(--r-pill);background:rgba(255,255,255,.16);color:#fff}
+html[data-look=sky] #top #srch kbd{background:rgba(255,255,255,.2);color:#fff;border-color:transparent}
+html[data-look=sky] #top .btn.pri{background:#fff;color:#2B3A8F;border-color:transparent;border-radius:var(--r-pill);font-weight:700}
+html[data-look=sky] :is(.card,.drstrip,details.acc,.stat,.mtile,.qrow,.tile){border:0;border-radius:20px;background:var(--card);box-shadow:0 6px 22px var(--shadow-sm)}
+html[data-look=sky] .tile{box-shadow:0 6px 22px var(--shadow-sm),inset 4px 0 0 var(--c);padding-left:calc(var(--sp-2) + 4px)}
+html[data-look=sky] .stat[class*=tk-]{background:color-mix(in srgb,var(--tc,var(--acc)) 9%,var(--card))}
+html[data-look=sky] .sh{font-size:13px;font-weight:700;color:var(--acc-ink);letter-spacing:.01em}
+html[data-look=sky] .btn{border-radius:14px;border-color:var(--line);background:var(--card);font-weight:600}
+html[data-look=sky] .btn.pri{background:linear-gradient(135deg,#2B3A8F,#4452C4);border-color:transparent;color:#fff;box-shadow:0 6px 16px var(--shadow)}
+html[data-look=sky][data-dk] .btn.pri{background:linear-gradient(135deg,#3A49C2,#5A68E0)}
+html[data-look=sky] .btn.ghost{background:none;border-color:transparent;color:var(--acc-ink);box-shadow:none}
+html[data-look=sky] .btn.danger{background:none;color:var(--err);border-color:var(--err)}
+html[data-look=sky] .chip{border-radius:var(--r-pill);background:var(--card);border-color:var(--line)}
+html[data-look=sky] .chip[aria-pressed=true],html[data-look=sky] .chip.on,html[data-look=sky] label.chip:has(input:checked){background:var(--acc-fill);border-color:var(--acc-fill);color:#fff}
+html[data-look=sky] :is(input[type=text],input[type=search],input[type=date],input[type=number],input[type=password],input[inputmode],select,textarea){background:var(--bg);border-color:var(--line);border-radius:14px;color:var(--ink)}
+html[data-look=sky] :is(input,select,textarea):focus{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 22%,transparent);outline:0}
+html[data-look=sky] .bar{border-radius:var(--r-pill)}
+html[data-look=sky] dialog{background:var(--card);border-radius:24px}
+html[data-look=sky] dialog.sheet{border-radius:28px 28px 0 0}
+html[data-look=sky] #drawer{border-radius:0 28px 28px 0}
+html[data-look=sky] .dnav{border-radius:14px}
+html[data-look=sky] .dnav[aria-current=page]{background:var(--acc-fill);color:#fff}
+html[data-look=sky] .dnav[aria-current=page]::before{display:none}
+html[data-look=sky] #toast{background:#1B2147;color:#fff;border-radius:var(--r-pill)}
+html[data-look=sky] #toast .btn{color:#fff}
+html[data-look=sky] #bnav{left:12px;right:12px;bottom:calc(10px + env(safe-area-inset-bottom,0px));border:0;border-radius:32px;padding:8px;background:var(--card);box-shadow:0 12px 34px var(--shadow),0 2px 8px var(--shadow-sm);-webkit-backdrop-filter:none;backdrop-filter:none;max-width:560px;margin:0 auto}
+html[data-look=sky] #bnav .bn{min-height:54px;border-radius:26px;color:var(--mut)}
+html[data-look=sky] #bnav .bn[aria-current=page]{background:var(--acc-fill);color:#fff;box-shadow:none}
+html[data-look=sky] #bnav .bn.add{order:9;margin:0 0 0 4px;width:54px;min-height:54px;height:54px;background:linear-gradient(135deg,#2B3A8F,#4452C4);color:#fff;box-shadow:0 6px 16px var(--shadow)}
+html[data-look=sky] #main .wrap{padding-bottom:calc(108px + env(safe-area-inset-bottom))}
+html[data-look=sky] #toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))}
+html[data-look=sky] #main{scroll-padding-top:var(--sp-3)}
+html.desk[data-look=sky] #side{background:var(--card);border-right:0;box-shadow:6px 0 30px var(--shadow-sm)}
+html.desk[data-look=sky] #side .lg{background:linear-gradient(135deg,#2B3A8F,#4452C4);color:#fff}
+html.desk[data-look=sky] #toast{bottom:var(--sp-4)}
+html.desk[data-look=sky] #main .wrap{padding-bottom:56px}
+html.desk[data-look=sky] #top h1{text-align:left}
+@media print{html[data-look=sky] #top{background:#fff;color:#000}}
 </style>
 </head>
 <body>
@@ -666,7 +754,7 @@ html[data-look=glass][data-tone=light] .kp button{background:rgba(255,255,255,.7
 <div id="app">
  <aside id="side" aria-label="Sidebar"></aside>
  <header id="top">
-  <button class="btn icon ghost" id="menu" data-act="menu" aria-label="Open menu" aria-haspopup="dialog"><svg class="ic"><use href="#i-menu"/></svg><img class="applogo" alt="" src="data:image/png;base64,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" width="40" height="40"></button>
+  <button class="btn icon ghost" id="menu" data-act="menu" aria-label="Open menu" aria-haspopup="dialog"><svg class="ic"><use href="#i-menu"/></svg><img class="applogo" alt="" src="data:image/png;base64,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" width="40" height="40"></button>
   <button class="btn icon ghost" id="back" data-act="back" aria-label="Back" hidden><svg class="ic"><use href="#i-left"/></svg></button>
   <h1 id="title">Home</h1>
   <button class="btn ghost" id="srch" data-act="pal" aria-label="Search or run action"><svg class="ic"><use href="#i-search"/></svg><span class="sk">Search or run action…</span><kbd>Ctrl K</kbd></button>
@@ -692,7 +780,7 @@ html[data-look=glass][data-tone=light] .kp button{background:rgba(255,255,255,.7
 <script>
 (function(){
 'use strict';
-var PRK='dgb_profiles',PR=(function(){var d={active:'main',list:[{id:'main',name:'Me',color:'#718A9B'}]};try{var r=JSON.parse(localStorage.getItem(PRK)||'null');if(r&&Array.isArray(r.list)&&r.list.length){d=r;if(!d.list.some(function(x){return x.id===d.active}))d.active=d.list[0].id}}catch(e){}return d})();
+var PRK='dgb_profiles',PR=(function(){var d={active:'main',list:[{id:'main',name:'Me',color:'#718A9B'}]};try{var r=JSON.parse(localStorage.getItem(PRK)||'null');if(r&&Array.isArray(r.list)&&r.list.length){d=scrub(r);d.list=d.list.filter(function(x){return x&&typeof x==='object'&&typeof x.id==='string'&&x.id});if(!d.list.length)d={active:'main',list:[{id:'main',name:'Me',color:'#718A9B'}]};if(!d.list.some(function(x){return x.id===d.active}))d.active=d.list[0].id}}catch(e){}return d})();
 var PID=PR.active,PFX=PID==='main'?'':PID+':';
 var KEY=PID==='main'?'dgb_data_v1':'dgb_data_v1_'+PID,ACCKEY=PID==='main'?'dgb_acc_state':'dgb_acc_state_'+PID;
 function prSave(){try{localStorage.setItem(PRK,JSON.stringify(PR))}catch(e){}}
@@ -837,16 +925,29 @@ function load(){
  try{var r=localStorage.getItem(KEY);if(r){var d=JSON.parse(r);if(d&&Array.isArray(d.accounts)&&Array.isArray(d.tx)&&Array.isArray(d.cats)){return fix(d)}}}catch(e){}
  return fix(defaults());
 }
+function scrub(v,key,dp){
+ var FREE={name:1,note:1,who:1,title:1,label:1,text:1,tags:1,desc:1,sub:1,memo:1,place:1};
+ dp=dp||0;
+ if(typeof v==='string'){
+  if(v.slice(0,11)==='data:image/')return /^data:image\/(png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]*$/.test(v)?v:'';
+  if(key==='color'||key==='c'||key==='bg')return /^#[0-9a-fA-F]{3,8}$/.test(v)?v:'#718A9B';
+  if(FREE[key])return v.slice(0,1000);
+  v=v.replace(/[<>"'`&\\]/g,'');
+  return key==='cur'?v.slice(0,6):v}
+ if(Array.isArray(v)){if(dp>14)return [];return v.map(function(x){return scrub(x,key,dp+1)})}
+ if(v&&typeof v==='object'){if(dp>14)return {};Object.keys(v).forEach(function(k){if(k==='__proto__'||k==='constructor'||k==='prototype'){delete v[k];return}v[k]=scrub(v[k],k,dp+1)});return v}
+ return v}
 function fix(d){
- d.settings=Object.assign(defaults().settings,d.settings||{});d.settings=Object.assign({look:'classic',wall:'dusk',remDays:7},d.settings);d.budgets=d.budgets||{};['trips','goals','loans','recurring','templates','td'].forEach(function(k){if(!Array.isArray(d[k]))d[k]=[]});d.goals.forEach(function(g){g.log=g.log||[]});d.loans.forEach(function(l){l.pay=l.pay||[]});
+ d=scrub(d);['app','schema','appVer','exported','photos','__n'].forEach(function(k){delete d[k]});
+ d.settings=Object.assign(defaults().settings,d.settings||{});d.settings=Object.assign({look:'sky',wall:'dusk',remDays:7},d.settings);d.budgets=d.budgets||{};['trips','goals','loans','recurring','templates','td'].forEach(function(k){if(!Array.isArray(d[k]))d[k]=[]});d.goals.forEach(function(g){g.log=g.log||[]});d.loans.forEach(function(l){l.pay=l.pay||[]});
  d.accounts.forEach(function(a){if(a.type==='wallet')a.type='ewallet';if(!TYPES[a.type])a.type='other';if(!a.color)a.color=TYPES[a.type].c;a.limit=a.limit||0;a.due=a.due||0;a.skip=!!a.skip;if(a.brand==='seabank'){a.brand='maribank';if(a.name==='SeaBank')a.name='Maribank'}a.brand=(a.brand&&brandOf(a.brand))?a.brand:'';a.icon=a.icon||''});
  d.loans.forEach(function(l){(l.pay||[]).forEach(function(p){if(p.tx){var t=d.tx.filter(function(x){return x.id===p.tx})[0];if(t)t.ln=true}})});
- d.v=2;return d;
+ d.v=3;return d;
 }
 var NOSAVE=false;
 function save(){
  if(NOSAVE)return;
- try{localStorage.setItem(KEY,JSON.stringify(S));if(!canSave){canSave=true;banner()}if(typeof snapSoon==='function')snapSoon()}
+ try{localStorage.setItem(KEY,JSON.stringify(S));if(!canSave){canSave=true;banner()}if(typeof snapSoon==='function')snapSoon();if(typeof syncSoon==='function')syncSoon()}
  catch(e){if(canSave){canSave=false;banner()}}
 }
 function banner(){var b=$('#banner');if(canSave){if(b)b.remove();return}
@@ -1258,18 +1359,19 @@ function pMore(){
  }
  if(V.sub==='look'){
   var gl=s.look==='glass';
-  return '<section class="card"><div class="sh">Look</div><div class="chips" role="group" aria-label="Look">'+[['classic','Classic'],['glass','Glass']].map(function(t){return '<button class="chip" data-act="look" data-v="'+t[0]+'" aria-pressed="'+((s.look||'classic')===t[0])+'">'+t[1]+'</button>'}).join('')+'</div><div class="hint" style="margin-top:8px">Glass is a dark frosted look over a background, with a sidebar on wide screens. Classic follows the theme below.</div></section>'
+  return '<section class="card"><div class="sh">Look</div><div class="chips" role="group" aria-label="Look">'+[['sky','Sky'],['classic','Classic'],['glass','Glass']].map(function(t){return '<button class="chip" data-act="look" data-v="'+t[0]+'" aria-pressed="'+((s.look||'sky')===t[0])+'">'+t[1]+'</button>'}).join('')+'</div><div class="hint" style="margin-top:8px">Sky is a clean indigo look with rounded white cards and a floating bar. Glass is a dark frosted look over a background, with a sidebar on wide screens. Classic follows the theme below.</div></section>'
    +(gl?'<section class="card"><div class="sh">Glass tone</div><div class="chips" role="group" aria-label="Glass tone">'+[['dark','Dark'],['light','Light'],['auto','Auto']].map(function(t){return '<button class="chip" data-act="tone" data-v="'+t[0]+'" aria-pressed="'+((s.gtone||'dark')===t[0])+'">'+t[1]+'</button>'}).join('')+'</div><div class="hint" style="margin-top:8px">Light gives bright frosted panels over a soft tinted background. Auto follows your phone.</div></section>':'')
    +(gl?'<section class="card"><div class="sh">Background</div><div class="chips">'+[['gray','Gray'],['dusk','Desert dusk'],['night','Night'],['forest','Forest'],['plum','Plum'],['lightgray','Light (all gray)'],['photo','My photo']].map(function(t){return '<button class="chip" data-act="wall" data-v="'+t[0]+'" aria-pressed="'+(s.wall===t[0])+'">'+t[1]+'</button>'}).join('')+'</div><div class="chips" style="margin-top:8px"><button class="btn" data-act="wallUp">'+ic('up')+'<span>Upload photo</span></button>'+(s.wall==='photo'?'<button class="btn ghost" data-act="wallRm">Remove photo</button>':'')+'</div></section>':'')
    +'<section class="card"><div class="sh">Theme (Classic)</div><div class="chips" role="group" aria-label="Theme">'+[['auto','Auto'],['light','Light'],['dark','Dark']].map(function(t){return '<button class="chip" data-act="theme" data-v="'+t[0]+'" aria-pressed="'+(s.theme===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'
    +'<button class="sw" data-act="frost" role="switch" aria-checked="'+!!s.frost+'" style="margin-top:12px"><span>Frosted bars and menus<div class="hint">Translucent bars in Classic. Glass is always frosted.</div></span></button></section>'
    +'<section class="card"><button class="sw" data-act="kpadSet" role="switch" aria-checked="'+(s.kpad!==false)+'"><span>Number pad for digits<div class="hint">Shows the in-app number pad whenever you type an amount, balance or PIN, instead of the phone keyboard.</div></span></button></section>'
+   +'<section class="card"><div class="sh">Layout</div><div class="chips" role="group" aria-label="Layout">'+[['auto','Auto'],['phone','Phone'],['desk','Desktop']].map(function(t){return '<button class="chip" data-act="layout" data-v="'+t[0]+'" aria-pressed="'+((s.layout||'auto')===t[0])+'">'+t[1]+'</button>'}).join('')+'</div><div class="hint">Auto uses the desktop layout when it finds a mouse on a wide screen, and the phone layout otherwise.</div></section>'
    +'<section class="card"><div class="sh">Text size</div><div class="chips" role="group" aria-label="Text size">'+[['s','Small'],['m','Default'],['l','Large'],['xl','Extra large']].map(function(t){return '<button class="chip" data-act="tsize" data-v="'+t[0]+'" aria-pressed="'+((s.tsize||'m')===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>'
    +'<button class="sw" data-act="hc" role="switch" aria-checked="'+!!s.hc+'" style="margin-top:12px"><span>High contrast<div class="hint">Darker text and clear borders so everything is easier to read.</div></span></button></section>'
    +'<section class="card"><button class="sw" data-act="compact" role="switch" aria-checked="'+!!s.compact+'"><span>Compact boxes<div class="hint">Smaller account cards and key-number tiles in one swipeable row, about half the height.</div></span></button></section>'
    +'<section class="card"><label class="field"><span>Currency symbol</span><input type="text" id="cur" maxlength="4" value="'+esc(s.cur)+'" style="max-width:140px"></label></section>';
  }
- return dataExtras()+snapCard()+'<section class="card"><div class="bkrow"><button class="btn wide" data-act="exportJson">'+ic('down')+'<span>Back up (JSON file)</span></button>'
+ return dataExtras()+snapCard()+syncCard()+'<section class="card"><button class="btn wide" data-act="dataCheck">'+ic('shield')+'<span>Check my data (map and repair)</span></button></section>'+'<section class="card"><div class="bkrow"><button class="btn wide" data-act="exportJson">'+ic('down')+'<span>Back up (JSON file)</span></button>'
   +'<button class="btn wide" data-act="importJson">'+ic('up')+'<span>Restore from backup</span></button>'
   +'<button class="btn wide" data-act="exportCsv">'+ic('down')+'<span>Export transactions (CSV)</span></button>'
   +'<button class="btn wide" data-act="exportXlsx">'+ic('down')+'<span>Export everything (Excel)</span></button>'
@@ -1852,6 +1954,194 @@ function snapRestore(k){
   });
  }).catch(function(){toast('Could not read snapshot')});
 }
+function backupPack(){
+ var o=backupObj(),ph={rc:{},logos:{},wall:''},jobs=[];
+ S.tx.forEach(function(t){if(t.rc)jobs.push(idbGet('rc_'+t.id).then(function(u){if(typeof u==='string'&&u.slice(0,11)==='data:image/')ph.rc[t.id]=u}).catch(function(){}))});
+ jobs.push(Promise.resolve().then(function(){Object.keys(LOGOS||{}).forEach(function(k){if(typeof LOGOS[k]==='string')ph.logos[k]=LOGOS[k]})}));
+ if(S.settings.wall==='photo')jobs.push(idbGet(PFX+'wall').then(function(u){if(typeof u==='string')ph.wall=u}).catch(function(){}));
+ return Promise.all(jobs).then(function(){var n=Object.keys(ph.rc).length;if(n||Object.keys(ph.logos).length||ph.wall)o.photos=ph;o.__n=n;return o})}
+function packText(o){var n=o.__n;delete o.__n;return {txt:JSON.stringify(o,null,1),n:n}}
+function restorePhotos(ph){
+ if(!ph||typeof ph!=='object')return;ph=scrub(ph);var ids={};S.tx.forEach(function(t){ids[t.id]=t});
+ Object.keys(ph.rc||{}).forEach(function(id){if(ids[id]&&ph.rc[id]){idbPut('rc_'+id,ph.rc[id]);ids[id].rc=true}});
+ if(ph.logos&&typeof ph.logos==='object'){var L={};Object.keys(ph.logos).forEach(function(k){if(ph.logos[k])L[k]=ph.logos[k]});if(Object.keys(L).length){LOGOS=Object.assign({},LOGOS,L);logoSave()}}
+ if(ph.wall){idbPut(PFX+'wall',ph.wall).then(function(){loadWall()})}
+ save()}
+function backupObj(){return Object.assign({app:'DiGe Budget',schema:3,appVer:APP_VER,exported:new Date().toISOString()},S)}
+function dataScan(){
+ var iss=[],A={},C={},T={};S.accounts.forEach(function(a){A[a.id]=1});S.cats.forEach(function(c){C[c.id]=1});S.trips.forEach(function(t){T[t.id]=1});
+ function dups(arr){var m={},n=0;arr.forEach(function(x){if(!x||x.id==null)return;if(m[x.id])n++;else m[x.id]=1});return n}
+ function add(msg,n,fix){if(n>0)iss.push({msg:msg,n:n,fix:fix})}
+ var dp=0;['tx','loans','goals','trips','recurring','templates','td'].forEach(function(k){dp+=dups(S[k])});
+ add('Records sharing the same ID',dp,'dups');
+ add('Accounts or categories sharing the same ID (open them and rename or delete the copy)',dups(S.accounts)+dups(S.cats),'');
+ add('Transactions whose account no longer exists',S.tx.filter(function(t){return !A[t.acc]}).length,'noacc');
+ add('Transfers whose destination account no longer exists (edit them in the Log)',S.tx.filter(function(t){return t.type==='tr'&&t.to&&!A[t.to]}).length,'');
+ add('Transactions with a category that no longer exists',S.tx.filter(function(t){return t.type!=='tr'&&t.cat&&!C[t.cat]}).length,'nocat');
+ add('Transactions linked to a trip that no longer exists',S.tx.filter(function(t){return t.trip&&!T[t.trip]}).length,'notrip');
+ add('Transactions with a missing or odd amount or type (edit them in the Log)',S.tx.filter(function(t){return !(t.amt>0)||Math.round(t.amt)!==t.amt||['exp','inc','tr'].indexOf(t.type)<0}).length,'');
+ add('Transactions with an unreadable date (edit them in the Log)',S.tx.filter(function(t){return !/^\d{4}-\d{2}-\d{2}$/.test(t.date||'')}).length,'');
+ var X={};S.tx.forEach(function(t){X[t.id]=1});
+ var ld=0;S.loans.forEach(function(l){(l.pay||[]).forEach(function(p){if(p.tx&&!X[p.tx])ld++;if(p.itx&&!X[p.itx])ld++})});
+ add('Loan payments linked to a transaction that was deleted',ld,'lnlink');
+ add('Budgets for categories that no longer exist',Object.keys(S.budgets).filter(function(k){return !C[k]}).length,'bud');
+ add('Repeats using an account that no longer exists (edit them under Repeats)',S.recurring.filter(function(r){return r.acc&&!A[r.acc]}).length,'');
+ var cnt=[['Accounts',S.accounts.length,'Cash, banks, e-wallets, cards'],['Categories',S.cats.length,'Groups for spending and income'],['Transactions',S.tx.length,'Expenses, income and transfers'],['Budgets',Object.keys(S.budgets).length,'Monthly limits per category'],['Trips',S.trips.length,'Spending groups for trips'],['Goals',S.goals.length,'Savings goals and their history'],['Loans and credits',S.loans.length,'Utang, installments, SPayLater and their payments'],['Repeats',S.recurring.length,'Automatic transactions'],['Templates',S.templates.length,'Saved quick entries'],['Time deposits',S.td.length,'Locked savings with interest']];
+ var kb=0;try{kb=Math.round(JSON.stringify(S).length/1024)}catch(e){}
+ return {iss:iss,cnt:cnt,kb:kb}}
+function dataRepair(){
+ var A={},C={},T={},X={},fx=0;S.accounts.forEach(function(a){A[a.id]=1});S.cats.forEach(function(c){C[c.id]=1});S.trips.forEach(function(t){T[t.id]=1});
+ ['tx','loans','goals','trips','recurring','templates','td'].forEach(function(k){var m={};S[k].forEach(function(x){if(!x||x.id==null)return;if(m[x.id]){x.id=uid();fx++}else m[x.id]=1})});
+ S.tx.forEach(function(t){X[t.id]=1});
+ var oth={exp:null,inc:null};S.cats.forEach(function(c){if(!c.parent){if(c.kind==='exp'&&(c.name==='Other'||!oth.exp))oth.exp=c.id;if(c.kind==='inc'&&(c.name==='Other income'||!oth.inc))oth.inc=c.id}});
+ var rec=null;
+ S.tx.forEach(function(t){
+  if(!A[t.acc]){if(!rec){rec={id:uid(),name:'Recovered',type:'other',start:0,color:TYPES.other.c,limit:0,due:0,skip:false,brand:'',icon:''};S.accounts.push(rec);A[rec.id]=1}t.acc=rec.id;fx++}
+  if(t.type!=='tr'&&t.cat&&!C[t.cat]){t.cat=oth[t.type]||null;fx++}
+  if(t.trip&&!T[t.trip]){delete t.trip;fx++}});
+ S.loans.forEach(function(l){(l.pay||[]).forEach(function(p){if(p.tx&&!X[p.tx]){delete p.tx;fx++}if(p.itx&&!X[p.itx]){delete p.itx;fx++}})});
+ Object.keys(S.budgets).forEach(function(k){if(!C[k]){delete S.budgets[k];fx++}});
+ return fx}
+function dataCheckDlg(){
+ var r=dataScan(),fixable=r.iss.some(function(i){return i.fix});
+ openDlg('<form class="dform" novalidate><h2 id="dlg-t">Data check</h2>'
+  +'<div class="hint">Your data lives only on this phone: the lists below are saved in the phone\'s storage ('+r.kb+' KB), and receipt photos, logos and saved copies in its file store.</div>'
+  +'<section class="card" style="box-shadow:none;padding:12px"><div class="sh">What is stored</div><div style="display:grid;gap:6px;margin-top:6px">'+r.cnt.map(function(c){return '<div style="display:flex;justify-content:space-between;gap:10px"><span><b>'+esc(c[0])+'</b><div class="hint">'+esc(c[2])+'</div></span><b class="num">'+c[1]+'</b></div>'}).join('')+'</div></section>'
+  +(r.iss.length?'<section class="card" style="box-shadow:none;padding:12px"><div class="sh">Problems found</div><ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:6px">'+r.iss.map(function(i){return '<li>'+esc(i.msg)+': <b>'+i.n+'</b>'+(i.fix?'':' <span class="hint">(needs you)</span>')+'</li>'}).join('')+'</ul></section>':'<section class="card" style="box-shadow:none;padding:12px"><b>All good.</b><div class="hint">No broken links, duplicates or unreadable entries.</div></section>')
+  +(fixable?'<div class="hint">Fix automatically keeps everything. It re-links or tidies broken references, and saves a copy of your data first so you can undo it under Saved copies.</div>':'')
+  +'<div class="actions">'+(fixable?'<button class="btn pri grow" type="submit">Fix automatically</button>':'')+'<button class="btn'+(fixable?'':' pri grow')+'" type="button" data-close>Close</button></div></form>',
+ function(){snapPre('Before data repair').then(function(){var n=dataRepair();save();dlg.close();render(true);toast(n+' item'+(n===1?'':'s')+' fixed')})})}
+/* ================= cloud sync (Google Drive app folder, end-to-end encrypted) ================= */
+var SYNC={tok:'',exp:0,busy:false,msg:'',err:'',fresh:false,t:0};
+var SYNC_SCOPE='https://www.googleapis.com/auth/drive.appdata',SYNC_DEV=['pinHash','pinSalt','pinLen','lockMin','bio','setup','layout','tsize','hc','compact','kpad','look','wall','tone','theme','frost','lastBackup','sync'];
+function scGet(){try{return JSON.parse(localStorage.getItem('dgb_sync'+PFX)||'{}')||{}}catch(e){return{}}}
+function scSet(o){try{localStorage.setItem('dgb_sync'+PFX,JSON.stringify(o))}catch(e){}}
+function syncUrl(){var u=location.origin+location.pathname.replace(/index\.html$/,'');return u}
+function syncOk(){return /^https:/.test(location.protocol)||location.hostname==='localhost'}
+function tokOk(){return !!SYNC.tok&&Date.now()<SYNC.exp-60000}
+function hashOf(str){var h1=0xdeadbeef,h2=0x41c6ce57;for(var i=0,c;i<str.length;i++){c=str.charCodeAt(i);h1=Math.imul(h1^c,2654435761);h2=Math.imul(h2^c,1597334677)}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return (4294967296*(2097151&h2)+(h1>>>0)).toString(36)}
+function b64e(buf){var a=new Uint8Array(buf),s='',i;for(i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s)}
+function b64d(t){var s=atob(t),a=new Uint8Array(s.length);for(var i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+async function syncDerive(pass,salt){var km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:250000,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function syncEnc(key,text){var iv=crypto.getRandomValues(new Uint8Array(12)),ct=await crypto.subtle.encrypt({name:'AES-GCM',iv:iv},key,new TextEncoder().encode(text));return {iv:b64e(iv),ct:b64e(ct)}}
+async function syncDec(key,env){var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64d(env.iv)},key,b64d(env.ct));return new TextDecoder().decode(pt)}
+function payloadObj(){var o=JSON.parse(JSON.stringify(S));SYNC_DEV.forEach(function(k){delete o.settings[k]});return o}
+function payloadText(){return JSON.stringify(payloadObj())}
+function passAsk(first){return new Promise(function(res){var done=false;
+ openDlg('<form class="dform" novalidate><h2 id="dlg-t">'+(first?'Choose a sync passphrase':'Enter your sync passphrase')+'</h2><div class="hint">'+(first?'This scrambles your data before it leaves this device. If you forget it, the cloud copy cannot be read. Use the same passphrase on every device.':'Enter the passphrase you chose when you first turned on sync.')+'</div><label class="field"><span>Passphrase</span><input type="password" name="p" autocomplete="off"></label>'+(first?'<label class="field"><span>Repeat passphrase</span><input type="password" name="q" autocomplete="off"></label>':'')+'<div class="err" role="alert" id="derr"></div><div class="actions"><button class="btn pri grow" type="submit">Continue</button><button class="btn" type="button" data-close>Cancel</button></div></form>',
+ function(f){var p=f.p.value;if(p.length<8){$('#derr').textContent='Use at least 8 characters.';return}if(first&&p!==f.q.value){$('#derr').textContent='The two passphrases do not match.';return}done=true;dlg.close();res(p)});
+ dlg.addEventListener('close',function h(){dlg.removeEventListener('close',h);if(!done)res(null)})})}
+async function syncKey(env){
+ var st=await idbGet(PFX+'synckey');if(st&&st.key&&(!env||st.salt===env.salt))return st;
+ var pass=await passAsk(!env);if(!pass)return null;
+ var salt=env?env.salt:b64e(crypto.getRandomValues(new Uint8Array(16)));
+ var o={key:await syncDerive(pass,b64d(salt)),salt:salt};await idbPut(PFX+'synckey',o);return o}
+async function gfetch(url,opt){
+ opt=opt||{};opt.headers=Object.assign({Authorization:'Bearer '+SYNC.tok},opt.headers||{});
+ var r=await fetch(url,opt);
+ if(r.status===401){SYNC.tok='';SYNC.exp=0;throw new Error('Sign in to Google again')}
+ if(!r.ok){var m='';try{m=(await r.json()).error.message}catch(e){}throw new Error('Google Drive said '+r.status+(m?': '+m.slice(0,120):''))}
+ return r}
+async function driveFind(name){var r=await gfetch('https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=10&fields='+encodeURIComponent('files(id,name,modifiedTime)')+'&q='+encodeURIComponent("name='"+name+"' and trashed=false"));var j=await r.json();return (j.files||[])[0]||null}
+async function driveGet(id){var r=await gfetch('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media');return r.text()}
+async function driveSave(name,id,text){
+ if(id){var r=await gfetch('https://www.googleapis.com/upload/drive/v3/files/'+id+'?uploadType=media&fields=id',{method:'PATCH',headers:{'Content-Type':'application/json'},body:text});return (await r.json()).id}
+ var b='dgsync'+Date.now(),body='--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify({name:name,parents:['appDataFolder']})+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+text+'\r\n--'+b+'--';
+ var r2=await gfetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:body});return (await r2.json()).id}
+function devName(){return document.documentElement.classList.contains('desk')?'Computer':'Phone'}
+function syncPaint(){var m=$('#main');if(m&&V.tab==='more'&&V.sub==='data'&&!document.querySelector('dialog[open]'))render(true)}
+function syncDirty(){var c=scGet();return hashOf(payloadText())!==c.hash}
+async function syncPush(f,name,key,rev){
+ var txt=payloadText(),h=hashOf(txt),e=await syncEnc(key.key,txt);
+ var env={app:'DiGe Budget sync',v:1,rev:rev,ts:new Date().toISOString(),dev:devName(),salt:key.salt,iv:e.iv,ct:e.ct};
+ var id=await driveSave(name,f&&f.id,JSON.stringify(env));
+ var c=scGet();scSet({cid:c.cid,auto:c.auto,fid:id,rev:rev,hash:h,ts:Date.now()});return id}
+async function syncApply(remote,rev,fid){
+ await snapPre('Before cloud sync');
+ var keep={};SYNC_DEV.forEach(function(k){if(S.settings[k]!==undefined)keep[k]=S.settings[k]});
+ SYNC.applying=true;try{S=fix(remote);S.settings=Object.assign({},S.settings,keep);save();applySettings();render(true)}finally{SYNC.applying=false}
+ var c=scGet();scSet({cid:c.cid,auto:c.auto,fid:fid,rev:rev,hash:hashOf(payloadText()),ts:Date.now()})}
+function syncChoose(rem,env){return new Promise(function(res){var done=false;
+ openDlg('<form class="dform" novalidate><h2 id="dlg-t">Both sides changed</h2><div class="hint">This device and the cloud both have changes the other has not seen. Pick which one to keep. The other is replaced, and your current data is saved first under Saved copies.</div>'
+ +'<section class="card" style="box-shadow:none;padding:12px"><b>This device</b><div class="hint">'+S.tx.length+' transactions, '+S.loans.length+' loans</div></section>'
+ +'<section class="card" style="box-shadow:none;padding:12px"><b>Cloud</b><div class="hint">'+(rem.tx||[]).length+' transactions, '+(rem.loans||[]).length+' loans. Saved '+esc(new Date(env.ts).toLocaleString())+' from the '+esc(env.dev||'other device')+'.</div></section>'
+ +'<div class="actions" style="flex-wrap:wrap"><button class="btn pri grow" type="button" data-pick="cloud">Keep the cloud copy</button><button class="btn grow" type="button" data-pick="local">Keep this device</button><button class="btn" type="button" data-close>Cancel</button></div></form>',function(){});
+ dlg.addEventListener('click',function h(e){var b=e.target.closest&&e.target.closest('[data-pick]');if(!b)return;dlg.removeEventListener('click',h);done=true;dlg.close();res(b.dataset.pick)});
+ dlg.addEventListener('close',function h2(){dlg.removeEventListener('close',h2);if(!done)res(null)})})}
+async function syncPhotos(key){
+ var pn='dige-'+PID+'-photos.enc',f=await driveFind(pn),rem={rc:{},logos:{}},changed=false,got=false;
+ if(f){try{rem=scrub(JSON.parse(await syncDec(key.key,JSON.parse(await driveGet(f.id)))))}catch(e){return}}
+ rem.rc=rem.rc||{};rem.logos=rem.logos||{};var ids={};S.tx.forEach(function(t){ids[t.id]=t});
+ var k;
+ for(k in rem.rc){if(ids[k]&&rem.rc[k]&&!(await idbGet('rc_'+k))){await idbPut('rc_'+k,rem.rc[k]);ids[k].rc=true;got=true}}
+ for(var i=0;i<S.tx.length;i++){var t=S.tx[i];if(t.rc&&!rem.rc[t.id]){var u=await idbGet('rc_'+t.id);if(typeof u==='string'&&u.slice(0,11)==='data:image/'){rem.rc[t.id]=u;changed=true}}}
+ for(k in rem.rc){if(!ids[k]){delete rem.rc[k];changed=true}}
+ Object.keys(LOGOS||{}).forEach(function(n){if(typeof LOGOS[n]==='string'&&!rem.logos[n]){rem.logos[n]=LOGOS[n];changed=true}});
+ var add=false;Object.keys(rem.logos).forEach(function(n){if(rem.logos[n]&&!LOGOS[n]){LOGOS[n]=rem.logos[n];add=true}});if(add)logoSave();
+ if(changed){var e=await syncEnc(key.key,JSON.stringify(rem));await driveSave(pn,f&&f.id,JSON.stringify({app:'DiGe Budget photos',v:1,salt:key.salt,iv:e.iv,ct:e.ct}))}
+ if(got||add){SYNC.applying=true;try{save();render(true)}finally{SYNC.applying=false}}}
+async function syncRun(manual){
+ var c=scGet(),name='dige-'+PID+'.enc',f=await driveFind(name),env=null;
+ if(f)env=JSON.parse(await driveGet(f.id));
+ var key=await syncKey(env);if(!key)return 'Sync cancelled';
+ if(!env){await syncPush(null,name,key,1);await syncPhotos(key);return 'Uploaded your data'}
+ var remote;try{remote=JSON.parse(await syncDec(key.key,env))}catch(e){await idbDel(PFX+'synckey');throw new Error('Wrong passphrase')}
+ var dirty=syncDirty(),same=c.fid===f.id,base=same?(c.rev||0):-1,rrev=env.rev||0,res;
+ if(!same){var fresh=!S.tx.length&&!S.loans.length&&!S.goals.length;
+  if(fresh){await syncApply(remote,rrev,f.id);res='Downloaded your data'}
+  else{var pick=await syncChoose(remote,env);if(!pick)return 'Sync cancelled';
+   if(pick==='cloud'){await syncApply(remote,rrev,f.id);res='Downloaded your data'}else{await syncPush(f,name,key,rrev+1);res='Uploaded your data'}}}
+ else if(rrev===base&&!dirty)res='Up to date';
+ else if(rrev===base&&dirty){await syncPush(f,name,key,rrev+1);res='Uploaded your changes'}
+ else if(rrev>base&&!dirty){await syncApply(remote,rrev,f.id);res='Downloaded changes from the '+(env.dev||'other device').toLowerCase()}
+ else{var p2=await syncChoose(remote,env);if(!p2)return 'Sync cancelled';
+  if(p2==='cloud'){await syncApply(remote,rrev,f.id);res='Downloaded your data'}else{await syncPush(f,name,key,Math.max(rrev,base)+1);res='Uploaded your data'}}
+ await syncPhotos(key);return res}
+async function syncNow(manual){
+ var c=scGet();
+ if(!c.cid){if(manual)syncSetupDlg();return}
+ if(!syncOk()){if(manual)toast('Sync needs the web version of the app (https)');return}
+ if(!tokOk()){if(manual)syncSignIn();return}
+ if(SYNC.busy)return;SYNC.busy=true;SYNC.msg='Syncing...';syncPaint();
+ try{var r=await syncRun(manual);SYNC.msg=r;SYNC.err=''}catch(e){SYNC.err=(e&&e.message)||'Sync failed';SYNC.msg='';if(manual)toast(SYNC.err)}
+ SYNC.busy=false;if(manual&&!SYNC.err)toast(SYNC.msg);syncPaint()}
+function syncSignIn(){
+ var c=scGet();if(!c.cid){syncSetupDlg();return}if(!syncOk()){toast('Sync needs the web version of the app (https)');return}
+ var st=Math.random().toString(36).slice(2)+Date.now().toString(36);try{localStorage.setItem('dgb_oauth_state',st)}catch(e){}
+ var u='https://accounts.google.com/o/oauth2/v2/auth?client_id='+encodeURIComponent(c.cid)+'&redirect_uri='+encodeURIComponent(syncUrl())+'&response_type=token&scope='+encodeURIComponent(SYNC_SCOPE)+'&state='+encodeURIComponent(st)+'&include_granted_scopes=true';
+ var w=null;try{w=window.open(u,'dgsync','width=480,height=680')}catch(e){}
+ if(!w)location.assign(u)}
+function oauthBoot(){
+ var h=location.hash;if(h.indexOf('access_token=')<0&&h.indexOf('error=')<0)return;
+ var p={};h.replace(/^#/,'').split('&').forEach(function(x){var i=x.indexOf('=');if(i>0)p[decodeURIComponent(x.slice(0,i))]=decodeURIComponent(x.slice(i+1))});
+ try{history.replaceState(history.state,'',location.pathname+location.search)}catch(e){}
+ var want=localStorage.getItem('dgb_oauth_state');if(!want||p.state!==want)return;localStorage.removeItem('dgb_oauth_state');
+ if(p.access_token){SYNC.tok=p.access_token;SYNC.exp=Date.now()+(+p.expires_in||3600)*1000;SYNC.fresh=true;try{localStorage.setItem('dgb_oauth_result',JSON.stringify({t:p.access_token,e:SYNC.exp}))}catch(e){}}
+ else SYNC.err='Google sign-in was cancelled or refused ('+(p.error||'error')+')';
+ if(window.opener){try{window.close()}catch(e){}}}
+function pickOauth(){var r;try{r=JSON.parse(localStorage.getItem('dgb_oauth_result')||'null')}catch(e){r=null}
+ if(!r||!r.t)return false;try{localStorage.removeItem('dgb_oauth_result')}catch(e){}
+ if(!SYNC.fresh||!tokOk()){SYNC.tok=r.t;SYNC.exp=r.e;SYNC.fresh=false;toast('Signed in to Google');syncNow(true)}return true}
+function syncAuto(){var c=scGet();if(!c.cid||c.auto===false||SYNC.busy||SYNC.applying||!tokOk())return;
+ var lk=document.getElementById('lock');if((lk&&!lk.hidden)||document.querySelector('dialog[open]'))return;syncNow(false)}
+function syncSoon(){if(SYNC.applying)return;var c=scGet();if(!c.cid||c.auto===false||!tokOk())return;clearTimeout(SYNC.t);SYNC.t=setTimeout(syncAuto,20000)}
+function syncSetupDlg(){
+ var c=scGet(),https=syncOk();
+ openDlg('<form class="dform" novalidate><h2 id="dlg-t">Cloud sync with Google Drive</h2><div class="hint">Your data is scrambled with your passphrase on this device before it goes to a hidden app folder in your own Google Drive. Google cannot read it, and neither can anyone else.</div>'
+ +(https?'':'<div class="hint" style="color:var(--err)">Sync only works in the web version of the app (https), not from a file on your phone.</div>')
+ +'<details class="xt"><summary>One-time setup in Google (5 minutes)</summary><ol style="margin:6px 0 0;padding-left:18px;display:grid;gap:6px;line-height:1.45"><li>Open console.cloud.google.com and create a project.</li><li>APIs and Services, Library: turn on Google Drive API.</li><li>OAuth consent screen: choose External, fill the app name and your email, and add your own Google account as a test user.</li><li>Credentials, Create credentials, OAuth client ID, type Web application.</li><li>Authorized JavaScript origins: <b>'+esc(location.origin)+'</b></li><li>Authorized redirect URIs: <b>'+esc(syncUrl())+'</b></li><li>Copy the Client ID and paste it below.</li></ol></details>'
+ +'<label class="field"><span>Client ID</span><input type="text" name="cid" autocomplete="off" spellcheck="false" placeholder="1234-abc.apps.googleusercontent.com" value="'+esc(c.cid||'')+'"></label>'
+ +'<div class="err" role="alert" id="derr"></div><div class="actions"><button class="btn pri grow" type="submit">Save and sign in</button><button class="btn" type="button" data-close>Cancel</button></div></form>',
+ function(f){var v=f.cid.value.trim();if(!/^[\w.-]+\.apps\.googleusercontent\.com$/.test(v)){$('#derr').textContent='That does not look like a Google Client ID.';return}
+  var o=scGet();o.cid=v;if(o.auto===undefined)o.auto=true;scSet(o);dlg.close();render(true);syncSignIn()})}
+function syncCard(){
+ var c=scGet();
+ if(!c.cid)return '<section class="card"><div class="sh">Cloud sync</div><div class="hint">Keep your phone and computer in step through your own Google Drive, scrambled with a passphrase only you know.</div><button class="btn wide" data-act="syncSetup" style="margin-top:8px">'+ic('up')+'<span>Set up Google Drive sync</span></button></section>';
+ var st=SYNC.busy?'Syncing...':SYNC.err?SYNC.err:SYNC.msg?SYNC.msg:(c.ts?'Last synced '+new Date(c.ts).toLocaleString():'Not synced yet');
+ return '<section class="card"><div class="sh">Cloud sync (Google Drive)</div><div style="margin:4px 0 8px"><b>'+esc(st)+'</b><div class="hint">'+(tokOk()?'Signed in to Google.':'Sign in to Google to sync. This is needed about once an hour.')+'</div></div>'
+ +'<div class="bkrow"><button class="btn wide pri" data-act="syncNow">'+ic('up')+'<span>'+(tokOk()?'Sync now':'Sign in and sync')+'</span></button>'
+ +'<button class="sw" data-act="syncAuto" role="switch" aria-checked="'+(c.auto!==false)+'" style="margin-top:6px"><span>Sync automatically<div class="hint">When the app opens and a short while after changes, while you are signed in.</div></span></button>'
+ +'<button class="btn wide" data-act="syncSetup">Change Client ID</button><button class="btn wide" data-act="syncOff">Turn off sync on this device</button><button class="btn wide danger" data-act="syncDel">Delete the cloud copy</button></div></section>'}
 function snapCard(){
  var idx=snapIdx().sort(function(a,b){return b.ts-a.ts});
  return '<section class="card"><div class="sh">Automatic snapshots</div><div class="hint">The app keeps a copy of your data for each of the last 7 days on this phone. Use one to undo a mistake.</div>'
@@ -1971,10 +2261,10 @@ function notifCheck(){
  }catch(e){}
 }
 function shareBackup(){
- var txt=JSON.stringify(S,null,1),f;
- try{f=new File([txt],'dige-budget-backup-'+today()+'.json',{type:'application/json'})}catch(e){exportJson();return}
- if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'DiGe Budget backup'}).then(function(){S.settings.lastBackup=Date.now();save();render(true);toast('Backup shared')}).catch(function(){})}
- else exportJson();
+ backupPack().then(function(o){var k=packText(o),f;
+ try{f=new File([k.txt],'dige-budget-backup-'+today()+'.json',{type:'application/json'})}catch(e){exportJson();return}
+ if(navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'DiGe Budget backup'}).then(function(){S.settings.lastBackup=Date.now();save();render(true);toast('Backup shared'+(k.n?' with '+k.n+' receipt photo'+(k.n===1?'':'s'):''))}).catch(function(){})}
+ else exportJson()})
 }
 function lockCard(){
  var s=S.settings,has=!!s.pinHash;
@@ -2063,6 +2353,7 @@ function csvNum(v){v=String(v||'').replace(/[^\d.,\-()]/g,'');if(!v)return 0;var
  if(v.indexOf(',')>-1&&v.indexOf('.')>-1)v=v.replace(/,/g,'');else if(/,\d{1,2}$/.test(v))v=v.replace(',','.');else v=v.replace(/,/g,'');
  var n=parseFloat(v);return isNaN(n)?0:Math.round((neg?-n:n)*100)}
 function loanClean(o){
+ o=scrub(o);
  function num(v){v=Math.round(Number(v));return isFinite(v)&&v>=0?v:0}
  function dt(v){return /^\d{4}-\d{2}-\d{2}$/.test(String(v||''))?String(v):''}
  function str(v,n){return String(v==null?'':v).slice(0,n)}
@@ -2405,7 +2696,44 @@ var BN=[['home','home','Home'],['log','list','Log'],['add','plus','Add'],['budge
 function renderBnav(){var n=$('#bnav');if(!n)return;
  n.innerHTML=BN.map(function(x){if(x[0]==='add')return '<button type="button" class="bn add" data-act="add" aria-label="Add transaction">'+ic('plus')+'</button>';
   var cur=V.tab===x[0]&&!(V.tab==='more');return '<button type="button" class="bn" data-act="tab" data-v="'+x[0]+'"'+(cur?' aria-current="page"':'')+'>'+ic(x[1])+'<span>'+x[2]+'</span></button>'}).join('')}
-function renderSide(){renderBnav();var s=$('#side');if(s)s.innerHTML='<div class="sl"><span class="lg">D</span><span class="sf">DiGe</span></div><nav aria-label="Sidebar">'+menuNav()+'</nav>'}
+var APPLOGO_SRC=(function(){var i=document.querySelector('#top .applogo');return i?i.getAttribute('src'):''})();
+function renderSide(){renderBnav();var s=$('#side');if(s)s.innerHTML='<div class="sl"><span class="lg"><img alt="" src="'+APPLOGO_SRC+'"></span><span class="sf">DiGe Budget</span></div><nav aria-label="Sidebar">'+menuNav()+'</nav><div class="sfoot"><button class="btn ghost" type="button" data-act="keys"><span>Keyboard shortcuts</span><kbd class="k">?</kbd></button><span>Version '+esc(APP_VER)+'</span></div>'}
+function kpadOff(){return S.settings.kpad===false||document.documentElement.classList.contains('desk')}
+function deskOn(){var l=S.settings.layout||'auto';if(l==='desk')return true;if(l==='phone')return false;return innerWidth>=900&&matchMedia('(any-pointer:fine)').matches&&matchMedia('(any-hover:hover)').matches}
+function applyLayout(){var on=deskOn(),r=document.documentElement,was=r.classList.contains('desk');if(was!==on){r.classList.toggle('desk',on);return true}return false}
+function deskFit(){
+ if(!document.documentElement.classList.contains('desk'))return;
+ var w=$('#main .wrap');if(!w)return;var kids=[].slice.call(w.children);
+ w.classList.remove('one');kids.forEach(function(k){k.classList.remove('span2')});
+ var cards=kids.filter(function(k){return k.matches('.card,details.acc,section')&&!k.matches('.stats,.stats4')});
+ w.classList.remove('listy');var L=kids.filter(function(k){return k.tagName==='DIV'&&!k.className&&k.children.length>=4})[0];if(L){w.classList.add('listy');return}
+ if(cards.length<2){w.classList.add('one');return}
+ var pend=null;
+ kids.forEach(function(k){if(k.hidden||!k.getBoundingClientRect().width)return;k.classList.remove('full','span2');
+  var bs=k.querySelectorAll('.btn.wide');if(bs.length>=3&&bs[0].parentElement){bs[0].parentElement.classList.add('bgrid')}
+  var wide=k.matches('section:not(.card),div:not([class]),.stats,.stats4,.chips,.mnav,.qrow,.sh,.revtools,.hint,.field,.span2,button.btn,.pg')||bs.length>=3||k.getBoundingClientRect().height>560;
+  if(wide){if(pend){pend.classList.add('full');pend=null}k.classList.add('full')}
+  else if(pend){pend=null}
+  else pend=k});
+ if(pend)pend.classList.add('full')}
+function shortcutsDlg(){
+ var K=[['N','Add a transaction'],['/ or Ctrl K','Search or run an action'],['G then H','Go to Home'],['G then L','Go to Log'],['G then B','Go to Budgets'],['G then R','Go to Reports'],['G then A','Go to Accounts'],['G then G','Go to Goals'],['G then C','Go to Credits'],['G then D','Go to Debt planner'],['?','Show this list'],['Esc','Close a window']];
+ openDlg('<form class="dform" novalidate><h2 id="dlg-t">Keyboard shortcuts</h2><div class="kgrid">'+K.map(function(k){return '<kbd class="k">'+esc(k[0])+'</kbd><span>'+esc(k[1])+'</span>'}).join('')+'</div><div class="hint">Shortcuts work when no window or box is open.</div><div class="actions"><button class="btn pri grow" type="button" data-close>Close</button></div></form>',function(){dlg.close()})}
+(function(){
+ var G={on:false,t:0},rt=0;
+ window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(function(){if(applyLayout())render(true);else deskFit()},120)});
+ var once=function(){document.removeEventListener('mousemove',once);if(applyLayout())render(true)};document.addEventListener('mousemove',once);
+ document.addEventListener('keydown',function(e){
+  if(!document.documentElement.classList.contains('desk')||e.ctrlKey||e.metaKey||e.altKey)return;
+  var t=e.target,tag=(t&&t.tagName)||'';if(/INPUT|TEXTAREA|SELECT/.test(tag)||(t&&t.isContentEditable)||document.querySelector('dialog[open]'))return;
+  var lk=document.getElementById('lock');if(lk&&!lk.hidden)return;
+  var k=e.key.toLowerCase();
+  if(G.on){G.on=false;var m={h:['home'],l:['log'],b:['budgets'],r:['reports'],a:['more','acc'],g:['more','goals'],c:['more','credit'],d:['more','debt']};if(m[k]){e.preventDefault();nav(m[k][0],m[k][1])}return}
+  if(k==='g'){G.on=true;clearTimeout(G.t);G.t=setTimeout(function(){G.on=false},1200);return}
+  if(k==='n'){e.preventDefault();var b=$('#top [data-act=add]');if(b)b.click()}
+  else if(e.key==='?'){e.preventDefault();shortcutsDlg()}
+ })})();
+
 function loadWall(){var r=document.documentElement;idbGet(PFX+'wall').then(function(v){if(v&&S.settings.look==='glass'&&S.settings.wall==='photo')r.style.setProperty('--wallimg','url("'+v+'")');else r.style.removeProperty('--wallimg')})}
 
 /* ================= widgets: stats, action items, quick actions ================= */
@@ -2432,6 +2760,7 @@ function actionItems(){
  S.goals.forEach(function(g){var nd=goalNeed(g);if(gs(g)<g.target&&nd.days!=null&&nd.days>=0&&nd.days<=30)a.push({p:nd.days+3,t:g.name,r:nd.days+' days left · '+money(nd.left)+' to go',at:'data-act="openGoal" data-id="'+g.id+'"'})});
  if(typeof recurDueSoon==='function')recurDueSoon().forEach(function(x){a.push(x)});
  var rd=S.settings.remDays===undefined?7:S.settings.remDays;
+ var sc=scGet();if(sc.cid&&!tokOk()&&(syncDirty()||Date.now()-(sc.ts||0)>216e5))a.push({p:25,t:'Cloud sync needs you to sign in',r:'',at:att('more','data')});
  if(rd>0&&S.tx.length&&(Date.now()-(S.settings.lastBackup||0))>rd*864e5)a.push({p:30,t:'Back up your data',r:S.settings.lastBackup?'last '+new Date(S.settings.lastBackup).toLocaleDateString():'never',at:att('more','data')});
  a.sort(function(x,y){return x.p-y.p});return a;
 }
@@ -2460,6 +2789,7 @@ function palItems(q){
  n('Customize dashboard','Actions',function(){V.dashEdit=true;nav('home')});
  n('Export transactions (CSV)','Actions',exportCsv);
  n('Back up data (JSON)','Actions',exportJson);
+ n('Switch to Sky look','Actions',function(){S.settings.look='sky';save();applySettings();render(true)});
  n(S.settings.look==='glass'?'Switch to Classic look':'Switch to Glass look','Actions',function(){S.settings.look=S.settings.look==='glass'?'classic':'glass';save();applySettings();render(true)});
  PAL_EXTRA.forEach(function(x){n(x.t,x.g||'Actions',x.run,x.sub)});
  S.accounts.forEach(function(a){n(a.name,'Accounts',function(){accDlg(a.id)},typeOf(a).l)});
@@ -2510,8 +2840,8 @@ var MENU=[
  ['Plan',[['more','subs','repeat','Subscriptions'],['more','bills','cal','Bills calendar'],['more','mrev','chart','Monthly review'],['more','year','chart','Year in review']]],
  ['Setup',[['more','logos','bank','Brand logos'],['more','recur','repeat','Repeats and templates'],['more','cat','tag','Categories'],['more','look','sun','Appearance'],['more','lock','shield','App lock'],['more','data','shield','Backup and data'],['more','help','flag','How it works']]]
 ];
-var APP_VER='2.11.2';
-var APP_NEW=['Debt planner shows each loan\'s own schedule date next to the plan date and explains the roll-over','Number fields: the number pad opens, autofill suggestions are off, and the sheet stays above the keyboard','Import loans and credits from a file (Backup and data). Adds to what you have and lets you check each one first','Loans: rebate for paying on time, late fees, balance after each payment and the expected last payment date','Fixed the dark blue boxes behind switches in Appearance on light themes','Fixes: switching profiles, the number pad in the paycheck dialog, and the menu closing while you scroll it. New: delete a profile or only its data','Reports now open with Where you stand: net worth, 12-month net worth trend, key numbers, budget used, goals and credits','10 dashboard presets for different needs (Customize on Home, then pick one)','Paycheck plan now fits any schedule: once, twice or three times a month on your own dates, every 2 weeks or weekly, with an amount for each payday','Exit confirmation: going back from Home asks Yes or No before closing the app','Safe to spend, bill Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank, paycheck plan, paste a statement and share backup'];
+var APP_VER='2.25';
+var APP_NEW=['Sharper app icon with no white: lighter blue shield, bars and card on navy','App icons are full square navy, so no white shows at the corners','App icon shield is now an outline with a clear centre','New flat app icon: a white shield with rising bars and a card, on solid navy','The sidebar now shows the full name DiGe Budget','The app icon now shows in the desktop sidebar','Thinner spacing between sidebar items on the desktop layout','Desktop layout fills the screen: short pages stretch to full width, cards pair up evenly and the backup buttons sit in two columns','New Sky look: clean indigo header, rounded white cards and a floating bottom bar. Pick it in Appearance','Cloud sync: keep your phone and computer in step through your own Google Drive. Your data is scrambled with a passphrase before it leaves the device','Backups now include receipt photos, brand logos and your background photo, and restoring brings them back','Desktop layout: on a computer with a mouse and a wide screen the app shows a side menu, wide two-column pages, centered windows and keyboard shortcuts. Choose Auto, Phone or Desktop in Appearance','Data check in Backup and data: shows what is stored, finds broken links and duplicates, and repairs them after saving a copy. Backups now carry a version label','Security hardening: backups, imports and profiles are cleaned on load, so a tampered file cannot run code. The app also blocks every outside connection','Debt planner shows each loan\'s own schedule date next to the plan date and explains the roll-over','Number fields: the number pad opens, autofill suggestions are off, and the sheet stays above the keyboard','Import loans and credits from a file (Backup and data). Adds to what you have and lets you check each one first','Loans: rebate for paying on time, late fees, balance after each payment and the expected last payment date','Fixed the dark blue boxes behind switches in Appearance on light themes','Fixes: switching profiles, the number pad in the paycheck dialog, and the menu closing while you scroll it. New: delete a profile or only its data','Reports now open with Where you stand: net worth, 12-month net worth trend, key numbers, budget used, goals and credits','10 dashboard presets for different needs (Customize on Home, then pick one)','Paycheck plan now fits any schedule: once, twice or three times a month on your own dates, every 2 weeks or weekly, with an amount for each payday','Exit confirmation: going back from Home asks Yes or No before closing the app','Safe to spend, bill Paid buttons and due-date notifications','Time deposits, goal interest, card statement cycle and debt planner','Net worth history, reconcile with bank, paycheck plan, paste a statement and share backup'];
 function verCmp(a,b){a=String(a).split('.');b=String(b).split('.');for(var i=0;i<Math.max(a.length,b.length);i++){var x=+a[i]||0,y=+b[i]||0;if(x!==y)return x<y?-1:1}return 0}
 function newList(){return '<ul style="margin:6px 0 0;padding-left:18px;display:grid;gap:4px">'+APP_NEW.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>'}
 function updFooter(){
@@ -2719,8 +3049,8 @@ function pHelp(){
   +acc('h_credit',"Credit cards, loans and utang","What you owe and are owed","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Credit cards</b> show what you owe, limit used and the due date. If you set a cut-off day, you also see the closed statement, what is still to pay, the pay-by date and what goes on the next statement.</div><div><b>Loans:</b> choose I owe or Owed to me. Enter the amount, who, the date (you can back-date old ones) and optionally interest. You can enter an interest rate and months, or the total interest directly.</div><div><b>Installments:</b> set the payment amount, how often, and a different first payment if needed. The app works out how many payments are left.</div><div><b>Mark paid</b> records the next payment with today's date and takes it from your chosen account. It can be undone.</div><div><b>Rebates and penalties:</b> if your lender gives a rebate for paying on time (for example 600 off each 5,907 installment), set it in the loan under Rebate for paying on time. Pay on or before the due date and the app takes the rebate off what you pay, while the full installment still reduces the balance. Pay late and there is no rebate. Enter any late fee or penalty in the fee box; it is not counted toward the balance. Each payment in the history shows the balance after it, like a payment book.</div><div><b>Utang owed to you:</b> partial payments are fine. Each one reduces what is left and the history keeps every payment.</div><div><b>SPayLater and similar:</b> add the account, then add each purchase with its number of installments. The app groups them into monthly bills and you mark each bill paid.</div></div>",false)
   +acc('h_rep',"Subscriptions, repeats and bills","Things that come back","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Repeats</b> create transactions automatically (rent, salary, allowances) weekly, every 2 weeks or monthly.</div><div><b>Subscriptions</b> are repeating costs. You can set one to ask first (it waits for you to confirm instead of posting by itself), pause it, or skip just the next charge.</div><div><b>Bills calendar</b> lists everything due by date: card due dates, loan payments, subscriptions and goal deadlines. Items due soon have a Paid button.</div><div><b>Notifications:</b> in Backup and data you can turn on due-date alerts. They appear when you open the app, once a day. The app cannot wake your phone by itself because it has no server.</div></div>",false)
   +acc('h_plan',"Planning tools","Look ahead","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Time deposits:</b> record amount, rate, tax, term and start date. The app shows the maturity date and the interest you will get, and counts the principal in your net worth. When it matures, Mark paid out adds the money and interest to the account you choose.</div><div><b>Debt planner:</b> lists your cards and loans you owe. Choose highest interest first (cheapest) or smallest first (fastest wins), set how much you can pay monthly and see your debt-free month and interest. For cards, set the interest rate and minimum in the card's settings for better numbers.</div><div><b>Net worth history:</b> a 12-month chart of your account balances after cards, calculated from your transactions. It does not include loans.</div><div><b>Paycheck plan:</b> choose how you are paid: once, twice or three times a month on the days your company uses (for example the 15th and 30th, each with its own amount), every 2 weeks or every week. For the current pay period it shows bills due, money to set aside for goals with deadlines, and what is left to spend per day, and lists your next paydays.</div><div><b>Trips:</b> group expenses under a trip to see its total cost.</div></div>",false)
-  +acc('h_data',"Backup and data","Keep your data safe","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Your data lives only in this browser on this phone. Clearing browser data or losing the phone loses it, so back up regularly.</div><div><b>Export backup</b> saves a file. <b>Share backup</b> sends it straight to Google Drive, WhatsApp or email. Keep a copy somewhere other than the phone.</div><div><b>Restore</b> loads a backup file. The app also keeps automatic snapshots on the device as a safety net.</div><div><b>Backup reminders</b> nudge you weekly, every 2 weeks or monthly.</div><div><b>Excel export</b> and <b>CSV import</b> work with spreadsheets and bank files. <b>Paste a statement</b> reads lines copied from GCash, Maya or a bank, lets you tick which to add, and skips ones already in your log.</div><div><b>Import loans and credits:</b> in Backup and data, choose Import loans and credits (file) to add loans, utang and SPayLater accounts from a prepared .json file. You see a list first, tick the ones to add, and nothing you already have is changed. Open each one afterwards to double-check and edit it.</div><div><b>Profiles:</b> keep separate sets of data (for example personal and business). Open Profiles from More or the menu, tap a profile to switch, and tap the pencil to rename it, change its avatar, <b>delete only its data</b> (the profile stays, empty) or <b>delete the whole profile</b>.</div></div>",false)
-  +acc('h_look',"Look, lock and privacy","Make it yours","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Appearance:</b> Classic or Glass look, light, dark or automatic, compact spacing and wallpapers.</div><div><b>App lock:</b> protect the app with a PIN. Fingerprint unlock works only when the app is installed on the home screen and opened over https.</div><div><b>Privacy:</b> nothing is sent anywhere. There is no tracking and no account. The only network use is loading the app itself the first time.</div><div><b>Brand logos:</b> set your own logos for banks and wallets.</div><div><b>Updates:</b> the menu shows your version number at the bottom. Tap Check for update and, if a newer version is online, the app refreshes itself. Your data is not touched. You need internet for this.</div></div>",false)
+  +acc('h_data',"Backup and data","Keep your data safe","<div style=\"display:grid;gap:10px;line-height:1.5\"><div>Your data lives only in this browser on this phone. Clearing browser data or losing the phone loses it, so back up regularly.</div><div><b>Export backup</b> saves a file. <b>Share backup</b> sends it straight to Google Drive, WhatsApp or email. Keep a copy somewhere other than the phone.</div><div><b>Restore</b> loads a backup file. The app also keeps automatic snapshots on the device as a safety net.</div><div><b>Backup reminders</b> nudge you weekly, every 2 weeks or monthly.</div><div><b>Excel export</b> and <b>CSV import</b> work with spreadsheets and bank files. <b>Paste a statement</b> reads lines copied from GCash, Maya or a bank, lets you tick which to add, and skips ones already in your log.</div><div><b>Import loans and credits:</b> in Backup and data, choose Import loans and credits (file) to add loans, utang and SPayLater accounts from a prepared .json file. You see a list first, tick the ones to add, and nothing you already have is changed. Open each one afterwards to double-check and edit it.</div><div><b>Cloud sync:</b> in Backup and data, Set up Google Drive sync links the app to a hidden folder in your own Google Drive. Your data is scrambled with a passphrase that only you know, so Google cannot read it. Edit on your phone, then open the app on your computer to see the changes, and the other way round. You sign in to Google about once an hour. If both devices changed at the same time, the app asks which copy to keep and saves a copy first. Appearance, PIN and layout stay per device.</div><div><b>Backups:</b> a backup file now includes your receipt photos, brand logos and background photo, so it can be bigger than before. Restoring it brings them all back.</div><div><b>Desktop layout:</b> when the app finds a mouse on a wide screen it switches to a bigger layout with a side menu, wide pages and keyboard shortcuts (press ? to see them). Everything works the same as on the phone. You can force Phone or Desktop in Appearance.</div><div><b>Data check:</b> in Backup and data, Check my data shows how many accounts, transactions, loans and so on are stored, lists anything broken (for example a transaction pointing to a deleted account) and can fix it automatically after saving a copy first.</div><div><b>Security:</b> everything stays on your phone. The app makes no connections to other sites, it only checks its own page for updates, and the downloaded app blocks any other connection. Names, notes and imported files are cleaned before use. The PIN is stored scrambled and locks for 30 seconds after 5 wrong tries. Backup files are not encrypted, so keep them private and never upload them to GitHub.</div><div><b>Profiles:</b> keep separate sets of data (for example personal and business). Open Profiles from More or the menu, tap a profile to switch, and tap the pencil to rename it, change its avatar, <b>delete only its data</b> (the profile stays, empty) or <b>delete the whole profile</b>.</div></div>",false)
+  +acc('h_look',"Look, lock and privacy","Make it yours","<div style=\"display:grid;gap:10px;line-height:1.5\"><div><b>Appearance:</b> Sky (clean indigo with rounded white cards and a floating bottom bar), Classic or Glass look, light, dark or automatic, compact spacing and wallpapers.</div><div><b>App lock:</b> protect the app with a PIN. Fingerprint unlock works only when the app is installed on the home screen and opened over https.</div><div><b>Privacy:</b> nothing is sent anywhere. There is no tracking and no account. The only network use is loading the app itself the first time.</div><div><b>Brand logos:</b> set your own logos for banks and wallets.</div><div><b>Updates:</b> the menu shows your version number at the bottom. Tap Check for update and, if a newer version is online, the app refreshes itself. Your data is not touched. You need internet for this.</div></div>",false)
   +'<div class="hint" style="text-align:center">Version 2026 · works offline · your data stays on this phone</div>';
 }
 /* ================= paycheck plan ================= */
@@ -3509,22 +3839,22 @@ function render(keepScroll){
 $('#top').classList.toggle('ishome',!(sub||tr));
  $('#cust').hidden=!(V.tab==='home'&&!V.dashEdit&&!sub&&!tr);
  m.innerHTML='<div class="wrap">'+PAGES[V.tab]()+'</div>';
- renderSide();
+ renderSide();deskFit();
  if(keepScroll)m.scrollTop=st;
 }
 function applySettings(){
- var r=document.documentElement,s=S.settings,glass=s.look==='glass';
+ var r=document.documentElement,s=S.settings,glass=s.look==='glass';applyLayout();
  if(s.theme==='auto')r.removeAttribute('data-theme');else r.setAttribute('data-theme',s.theme);
  if(s.frost)r.setAttribute('data-frost','');else r.removeAttribute('data-frost');
  if(s.compact)r.setAttribute('data-compact','');else r.removeAttribute('data-compact');
  if(s.tsize&&s.tsize!=='m')r.setAttribute('data-tsize',s.tsize);else r.removeAttribute('data-tsize');
  if(s.hc)r.setAttribute('data-hc','');else r.removeAttribute('data-hc');
- r.setAttribute('data-look',glass?'glass':'classic');r.setAttribute('data-wall',s.wall||'dusk');
+ r.setAttribute('data-look',glass?'glass':s.look==='classic'?'classic':'sky');r.setAttribute('data-wall',s.wall||'dusk');
  var tone=s.gtone==='light'||(s.gtone==='auto'&&!matchMedia('(prefers-color-scheme:dark)').matches)||s.wall==='lightgray'?'light':'dark';r.setAttribute('data-tone',tone);
  if(glass&&s.wall==='photo')loadWall();else r.style.removeProperty('--wallimg');
  var dark=(glass&&tone==='dark'&&s.wall!=='gray')||s.theme==='dark'||(s.theme==='auto'&&matchMedia('(prefers-color-scheme:dark)').matches);
  if(dark)r.setAttribute('data-dk','');else r.removeAttribute('data-dk');
- $('meta[name=theme-color]').setAttribute('content',glass?(tone==='light'?'#EEF0F2':'#1b2027'):dark?'#2C3740':'#F8F9FA');
+ $('meta[name=theme-color]').setAttribute('content',(!glass&&s.look!=='classic')?(dark?'#1E2670':'#2B3A8F'):glass?(tone==='light'?'#EEF0F2':'#1b2027'):dark?'#2C3740':'#F8F9FA');
 }
 /* ---------- dialogs ---------- */
 var dlg=$('#dlg'),cfm=$('#cfm'),drawer=$('#drawer');
@@ -3588,7 +3918,7 @@ var gpT=null,gpEl=null;
 function gpOff(){if(gpEl){gpEl.remove();gpEl=null}gpT=null}
 function gpIsNum(el){return el&&el.tagName==='INPUT'&&(el.dataset.im||el.getAttribute('inputmode'))&&/^(decimal|numeric)$/.test(el.dataset.im||el.getAttribute('inputmode'))||(el&&el.tagName==='INPUT'&&el.dataset.im&&/^(decimal|numeric)$/.test(el.dataset.im))}
 function gpShow(el){
- if(S.settings.kpad===false)return;
+ if(kpadOff())return;
  if(el.name==='amt'&&el.form&&el.form.querySelector('[data-kp]'))return;
  if(!el.dataset.im)el.dataset.im=el.getAttribute('inputmode');
  el.setAttribute('inputmode','none');
@@ -3620,7 +3950,7 @@ document.addEventListener('click',function(e){var b=e.target.closest&&e.target.c
  if(b.hasAttribute('data-gtoggle')){var t=gpT;S.settings.kpad=false;save();gpOff();document.querySelectorAll('input[data-im]').forEach(function(i){i.setAttribute('inputmode',i.dataset.im)});if(t){t.blur();t.focus()}return}
  gpKey(b.dataset.g)},true);
 function kpadHtml(){
- if(S.settings.kpad===false)return '<div class="kp" data-kp hidden></div><button type="button" class="btn ghost" data-kptoggle style="justify-self:start;min-height:32px">Use number pad</button>';
+ if(kpadOff())return '<div class="kp" data-kp hidden></div><button type="button" class="btn ghost" data-kptoggle style="justify-self:start;min-height:32px">Use number pad</button>';
  var keys=[['1'],['2'],['3'],['⌫','bs'],['4'],['5'],['6'],['+50','q50'],['7'],['8'],['9'],['+100','q100'],['.'],['0'],['00'],['+500','q500']];
  return '<div class="kp" data-kp role="group" aria-label="Number pad">'+keys.map(function(k){return '<button type="button" data-k="'+(k[1]||k[0])+'"'+(k[1]&&k[1][0]==='q'?' class="q"':'')+(k[1]==='bs'?' aria-label="Delete"':'')+'>'+k[0]+'</button>'}).join('')+'<button type="button" class="kb" data-kptoggle>Use phone keyboard</button></div>';
 }
@@ -3631,7 +3961,7 @@ function txDlg(id,tripPre,pre){
  var tripSel=t?(t.trip||''):(tripPre!==undefined?tripPre:defaultTrip());
  openDlg('<form class="dform" novalidate><div class="txhead"><h2 id="dlg-t">'+(t?'Edit transaction':'Add transaction')+'</h2>'+(t?'':'<button type="button" class="btn ghost" data-act="sms" aria-label="Paste a bank or wallet message">'+ic('receipt')+'<span>Paste</span></button>')+'</div>'
   +tplRow(t)+'<div class="chips seg" role="radiogroup" aria-label="Type">'+[['exp','Expense'],['inc','Income'],['tr','Transfer']].map(function(x){return '<label class="chip"><input type="radio" name="type" value="'+x[0]+'"'+(ty===x[0]?' checked':'')+'><span>'+x[1]+'</span></label>'}).join('')+'</div>'
-  +'<label class="field"><span>Amount ('+esc(S.settings.cur)+')</span><input class="amount" name="amt" inputmode="'+(S.settings.kpad===false?'decimal':'none')+'" autocomplete="off" placeholder="0.00" value="'+(t?(t.amt/100).toFixed(2):(pre&&pre.amt?(pre.amt/100).toFixed(2):''))+'"></label>'
+  +'<label class="field"><span>Amount ('+esc(S.settings.cur)+')</span><input class="amount" name="amt" inputmode="'+(kpadOff()?'decimal':'none')+'" autocomplete="off" placeholder="0.00" value="'+(t?(t.amt/100).toFixed(2):(pre&&pre.amt?(pre.amt/100).toFixed(2):''))+'"></label>'
   +kpadHtml()+dedHtml(t)
   +'<div class="field" data-f="cat"><span>Category</span><select name="cat" hidden aria-hidden="true" tabindex="-1"></select><button type="button" class="catbtn" data-act="pickCat" aria-label="Choose category"></button></div>'
   +'<label class="field" data-f="trip"><span>Trip (optional)</span><select name="trip">'+tripOpts(tripSel)+'</select></label>'
@@ -3930,8 +4260,8 @@ function exportCsv(){
  toast('CSV exported');
 }
 function exportJson(){
- download('dige-budget-backup-'+today()+'.json',JSON.stringify(S,null,1),'application/json');
- S.settings.lastBackup=Date.now();save();render(true);toast('Backup saved to your downloads');
+ backupPack().then(function(o){var k=packText(o);download('dige-budget-backup-'+today()+'.json',k.txt,'application/json');
+ S.settings.lastBackup=Date.now();save();render(true);toast('Backup saved to your downloads'+(k.n?' with '+k.n+' receipt photo'+(k.n===1?'':'s'):''))});
 }
 $('#file').addEventListener('change',function(e){
  var f=e.target.files[0];e.target.value='';if(!f)return;
@@ -3939,8 +4269,9 @@ $('#file').addEventListener('change',function(e){
  r.onload=function(){
   var d;try{d=JSON.parse(r.result)}catch(x){toast('That file is not a valid backup');return}
   if(!d||!Array.isArray(d.accounts)||!Array.isArray(d.tx)||!Array.isArray(d.cats)){toast('That file is not a DiGe Budget backup');return}
-  ask('Replace all current data with this backup ('+d.tx.length+' transactions)?','Replace').then(function(ok){
-   if(!ok)return;snapPre('Before backup restore').then(function(){S=fix(d);save();applySettings();render();toast('Backup restored')});return;
+  var ph=d.photos;delete d.photos;var pn=ph&&ph.rc?Object.keys(ph.rc).length:0;
+  ask('Replace all current data with this backup ('+d.tx.length+' transactions'+(pn?', '+pn+' receipt photo'+(pn===1?'':'s'):'')+')?','Replace').then(function(ok){
+   if(!ok)return;snapPre('Before backup restore').then(function(){S=fix(d);save();restorePhotos(ph);applySettings();render();toast('Backup restored')});return;
   });
  };r.readAsText(f);
 });
@@ -3996,7 +4327,7 @@ var ACTS={
  delBud:function(el){delete S.budgets[el.dataset.id];save();dlg.close();render(true);toast('Budget removed')},
  theme:function(el){S.settings.theme=el.dataset.v;save();applySettings();render(true)},
  kpadSet:function(){S.settings.kpad=S.settings.kpad===false;save();render(true)},
- tsize:function(el){S.settings.tsize=el.dataset.v;save();applySettings();render(true)},
+ keys:function(){shortcutsDlg()},layout:function(el){S.settings.layout=el.dataset.v;save();applySettings();render(true)},tsize:function(el){S.settings.tsize=el.dataset.v;save();applySettings();render(true)},
  hc:function(){S.settings.hc=!S.settings.hc;save();applySettings();render(true)},
  compact:function(){S.settings.compact=!S.settings.compact;save();applySettings();render(true)},
  profMenu:function(){profDlg()},
@@ -4103,7 +4434,7 @@ var ACTS={
  delContrib:function(el){var g=goalById(el.dataset.id),rest=g.log.filter(function(x){return x.id!==el.dataset.e}),sum=rest.reduce(function(a,x){return a+x.amt},0);
   if(sum<0){$('#derr').textContent='Removing this would leave a negative balance.';return}var gone=g.log.filter(function(x){return x.id===el.dataset.e})[0];if(gone&&gone.tx)S.tx=S.tx.filter(function(t){return t.id!==gone.tx});g.log=rest;save();dlg.close();render(true);toast('Entry deleted')},
  quickPaid:function(el){var l=loanById(el.dataset.id);if(l)loanQuick(l)},
- shareBackup:function(){shareBackup()},importLoans:function(){$('#lnfile').click()},appUpdate:function(){checkUpdate()},stmtPaste:function(){stmtPasteDlg()},payDlg:function(){payDlg()},payOff:function(){S.settings.pay=null;save();dlg.close();render(true)},recon:function(el){reconDlg(el.dataset.id)},goNw:function(){V.tab='more';V.sub='nw';render();$('#main').scrollTop=0},newTd:function(){tdDlg()},editTd:function(el){tdDlg(el.dataset.id)},tdMature:function(el){tdMature(el.dataset.id)},tdUndo:function(el){tdUndo(el.dataset.id)},
+ dataCheck:function(){dataCheckDlg()},syncSetup:function(){syncSetupDlg()},syncNow:function(){syncNow(true)},syncAuto:function(){var c=scGet();c.auto=c.auto===false;scSet(c);render(true)},syncOff:function(){ask('Turn off sync on this device? Your data here stays. The copy in Google Drive stays too.','Turn off').then(function(ok){if(!ok)return;scSet({});SYNC.tok='';SYNC.exp=0;SYNC.msg='';SYNC.err='';idbDel(PFX+'synckey');render(true);toast('Sync is off on this device')})},syncDel:function(){ask('Delete the encrypted copy from Google Drive? Your data on your devices is not touched.','Delete').then(async function(ok){if(!ok)return;if(!tokOk()){toast('Sign in first, then try again');syncSignIn();return}try{for(var n of ['dige-'+PID+'.enc','dige-'+PID+'-photos.enc']){var f=await driveFind(n);if(f)await gfetch('https://www.googleapis.com/drive/v3/files/'+f.id,{method:'DELETE'})}var c=scGet();scSet({cid:c.cid,auto:c.auto});toast('Cloud copy deleted');render(true)}catch(e){toast(e.message)}})},shareBackup:function(){shareBackup()},importLoans:function(){$('#lnfile').click()},appUpdate:function(){checkUpdate()},stmtPaste:function(){stmtPasteDlg()},payDlg:function(){payDlg()},payOff:function(){S.settings.pay=null;save();dlg.close();render(true)},recon:function(el){reconDlg(el.dataset.id)},goNw:function(){V.tab='more';V.sub='nw';render();$('#main').scrollTop=0},newTd:function(){tdDlg()},editTd:function(el){tdDlg(el.dataset.id)},tdMature:function(el){tdMature(el.dataset.id)},tdUndo:function(el){tdUndo(el.dataset.id)},
  delTd:function(el){var id=el.dataset.id;ask('Delete this time deposit?').then(function(ok){if(!ok)return;S.td=S.td.filter(function(x){return x.id!==id});save();dlg.close();render(true);toast('Deleted')})},
  debtM:function(el){S.settings.debtM=el.dataset.m;save();render(true)},debtBud:function(){debtBudDlg()},notifToggle:function(){
   if(S.settings.notif){S.settings.notif=false;save();render(true);return}
@@ -4201,7 +4532,7 @@ function hInit(){
   try{enterAnim();render();$('#main').scrollTop=0}finally{HN.restoring=false}
  });
 }
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});S=load();runRecurring();initDrawer();hInit();setTimeout(notifCheck,1500);initPal();initLock();initDrag();applySettings();render();banner();setupMaybe();runShortcut();
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(function(){});oauthBoot();S=load();runRecurring();initDrawer();hInit();setTimeout(notifCheck,1500);window.addEventListener('storage',function(e){if(e.key==='dgb_oauth_result')pickOauth()});window.addEventListener('focus',pickOauth);document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'){if(!pickOauth())syncAuto()}});setTimeout(function(){if(SYNC.fresh){SYNC.fresh=false;try{localStorage.removeItem('dgb_oauth_result')}catch(e){}toast('Signed in to Google');syncNow(true)}else if(SYNC.err){toast(SYNC.err)}else if(!pickOauth())syncAuto()},2500);initPal();initLock();initDrag();applySettings();render();banner();setupMaybe();runShortcut();
 try{if(matchMedia){matchMedia('(prefers-color-scheme:dark)').addEventListener('change',applySettings)}}catch(e){}
 window.__dgb={get:function(){return S},V:V};
 })();

@@ -1,5 +1,5 @@
-var C='dige-budget-v48',F=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-192.png','./icon-maskable-512.png','./apple-touch-icon.png','./favicon.png'];
+var C='dige-budget-v62',F=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./icon-maskable-192.png','./icon-maskable-512.png','./apple-touch-icon.png','./favicon.png'];
 self.addEventListener('install',function(e){e.waitUntil(caches.open(C).then(function(c){return c.addAll(F)}).then(function(){return self.skipWaiting()}))});
 self.addEventListener('activate',function(e){e.waitUntil(caches.keys().then(function(k){return Promise.all(k.filter(function(x){return x!==C}).map(function(x){return caches.delete(x)}))}).then(function(){return self.clients.claim()}))});
-self.addEventListener('fetch',function(e){var r=e.request;if(r.method!=='GET')return;var nav=r.mode==='navigate';
+self.addEventListener('fetch',function(e){var r=e.request;if(r.method!=='GET'||new URL(r.url).origin!==self.location.origin)return;var nav=r.mode==='navigate';
  e.respondWith((nav?fetch(r).then(function(n){var cp=n.clone();caches.open(C).then(function(c){c.put('./index.html',cp)});return n}).catch(function(){return caches.match('./index.html')}):caches.match(r,{ignoreSearch:true}).then(function(h){return h||fetch(r).then(function(n){var cp=n.clone();caches.open(C).then(function(c){c.put(r,cp)});return n})})));});
